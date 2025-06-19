@@ -1,6 +1,6 @@
 import SwiftUI
 
-// Model for a single card
+// Model for a single card, aici initalizam si starile, isfaceup si ismatched
 struct Card: Identifiable {
     let id: Int
     let content: String
@@ -14,9 +14,11 @@ struct MemoryMatchView: View {
         Card(id: 0, content: "🍎"),
         Card(id: 1, content: "🍎"),
         Card(id: 2, content: "🍌"),
-        Card(id: 3, content: "🍌")
+        Card(id: 3, content: "🍌"),
+        Card(id: 2, content: "🥝"),
+        Card(id: 3, content: "🥝")
     ].shuffled()
-    @State private var indexOfFaceUpCard: Int? = nil
+    @State private var indexOfFaceUpCard: Int? = nil // starea cardului care este ales
     @State private var isProcessing: Bool = false // Prevent taps during animation
 
     // 2 columns for a 2x2 grid
@@ -27,7 +29,7 @@ struct MemoryMatchView: View {
             Text("Memory Match")
                 .font(.largeTitle)
                 .padding(.top)
-            LazyVGrid(columns: columns, spacing: 20) {
+            LazyVGrid(columns: columns, spacing: 20) { // cu LazyVGrid facem Grid ul in IOS
                 ForEach(cards.indices, id: \ .self) { index in
                     CardView(card: cards[index])
                         .onTapGesture {
@@ -44,7 +46,8 @@ struct MemoryMatchView: View {
 
     // Game logic for flipping and matching cards
     func flipCard(at index: Int) {
-        guard !cards[index].isFaceUp, !cards[index].isMatched, !isProcessing else { return }
+        // daca cardul este deja inceput sau e deja match sau e in proces de animatie, nu facem nimic
+        guard !cards[index].isFaceUp, !cards[index].isMatched, !isProcessing else { return } 
         if let firstIndex = indexOfFaceUpCard {
             // Second card flipped
             cards[index].isFaceUp = true
