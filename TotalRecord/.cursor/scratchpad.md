@@ -11,7 +11,7 @@
 > - Ensuring code is testable and maintainable
 
 ## High-Level Task Breakdown
-- [ ] Task 1: Set up SwiftUI project structure and navigation
+- [x] Task 1: Set up SwiftUI project structure and navigation
   - ✅ Success Criteria: App launches to a home screen with navigation to "Games" and "Memory Palace" sections.
   - 🎯 Learning Goal: Understand SwiftUI app structure, navigation stacks, and view composition.
   - 📘 Educator Notes: 
@@ -19,6 +19,16 @@
     - Navigation is managed with `NavigationStack` or `NavigationView`.
     - Try creating a simple two-screen navigation example.
     - **Exercise:** Build a minimal app with a home screen and a button to a second view.
+  - 🧑‍🏫 **Educator Summary:**
+    - Both implementations used `TabView` for bottom navigation and split the app into three main sections: Home, Games, and Memory Palace.
+    - The user's version correctly used separate views and navigation, with basic comments.
+    - The AI version added more detailed comments, clearer placeholder text, and consistent layout with `VStack` for future expandability.
+    - **Key Learning Points:**
+      - `TabView` is the standard for bottom navigation in iOS apps.
+      - Each `.tabItem` defines the icon and label for a tab.
+      - Using separate views for each section keeps code organized and scalable.
+      - Adding comments and clear placeholders helps future development and learning.
+    - **Reflection:** Both approaches were correct; the AI version focused more on educational clarity and UI hints. You can mix and match these ideas as you continue building!
 
 - [ ] Task 2: Implement Memory Match (match-the-pairs) game logic and UI
   - ✅ Success Criteria: User can play a basic match-the-pairs game with cards flipping and matching.
@@ -102,7 +112,7 @@
     - **Exercise:** Write a test for a function that adds two numbers.
 
 ## Project Status Board
-- [ ] Task 1: Set up SwiftUI project structure and navigation
+- [x] Task 1: Set up SwiftUI project structure and navigation
 - [ ] Task 2: Implement Memory Match game logic and UI
 - [ ] Task 3: Add scoring, timer, and difficulty to Memory Match
 - [ ] Task 4: Implement Sequence Recall game mode
@@ -116,6 +126,9 @@
 
 ## Executor's Feedback or Assistance Requests
 > (To be filled during execution: blockers, bugs, or questions for the user.)
+
+## Lessons
+> Task 1: Learned how to use TabView for bottom navigation, how to structure a SwiftUI app with separate views for each section, and how to use NavigationStack for in-tab navigation. Practiced writing beginner-friendly, well-commented code and compared two approaches for clarity and expandability.
 
 ## Lessons
 > (To be filled during execution: bugs, fixes, reusable patterns, and key insights.) 
