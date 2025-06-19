@@ -9,13 +9,52 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, John, what s up with your life?!")
+        TabView {
+            HomeView()  // punem elementul de tip view inainte de .tabItem pentru a afisa elementul in tabview
+                .tabItem {
+                    Image(systemName: "house") // aici doar punem iconul
+                    Text("Home")
+                }
+            GamesMenuView()
+                .tabItem {
+                    Image(systemName: "gamecontroller")  //iconul
+                    Text("Games")
+                }
+            MemoryPalaceListView()
+                .tabItem {
+                    Image(systemName: "building.columns") //iconul
+                    Text("Memory Palace")
+                }
         }
-        .padding()
+    }
+}
+
+struct HomeView: View {  //aste e un element de tip view care se afiseaza in tabview
+    var body: some View {
+        NavigationStack {
+            VStack {
+                Text("Welcome to TotalRecard!")
+            }
+            .navigationTitle("Home")
+        }
+    }
+}
+
+struct GamesMenuView: View {
+    var body: some View {
+        NavigationStack {
+            Text("Choose a game mode here")
+                .navigationTitle("Games")
+        }
+    }
+}
+
+struct MemoryPalaceListView: View {
+    var body: some View {
+        NavigationStack {
+            Text("Your Memory Palaces")
+                .navigationTitle("Memory Palace")
+        }
     }
 }
 
