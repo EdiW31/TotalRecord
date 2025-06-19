@@ -9,51 +9,74 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
+        // TabView creates a bottom tab bar for main app sections
         TabView {
-            HomeView()  // punem elementul de tip view inainte de .tabItem pentru a afisa elementul in tabview
+            HomeView()
                 .tabItem {
-                    Image(systemName: "house") // aici doar punem iconul
+                    Image(systemName: "house")
                     Text("Home")
                 }
             GamesMenuView()
                 .tabItem {
-                    Image(systemName: "gamecontroller")  //iconul
+                    Image(systemName: "gamecontroller")
                     Text("Games")
                 }
             MemoryPalaceListView()
                 .tabItem {
-                    Image(systemName: "building.columns") //iconul
+                    Image(systemName: "building.columns")
                     Text("Memory Palace")
                 }
         }
     }
 }
 
-struct HomeView: View {  //aste e un element de tip view care se afiseaza in tabview
+// Home tab: Welcome screen with navigation title
+struct HomeView: View {
     var body: some View {
         NavigationStack {
             VStack {
                 Text("Welcome to TotalRecard!")
+                    .font(.title)
+                    .padding()
+                Text("Start training your memory with games or build your memory palace.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
             }
             .navigationTitle("Home")
         }
     }
 }
 
+// Games tab: Placeholder for game selection
 struct GamesMenuView: View {
     var body: some View {
         NavigationStack {
-            Text("Choose a game mode here")
-                .navigationTitle("Games")
+            VStack {
+                Text("Choose a game mode")
+                    .font(.title2)
+                    .padding(.bottom)
+                // Placeholder for future game mode navigation
+                Text("(Game modes will appear here)")
+                    .foregroundColor(.secondary)
+            }
+            .navigationTitle("Games")
         }
     }
 }
 
+// Memory Palace tab: Placeholder for palace management
 struct MemoryPalaceListView: View {
     var body: some View {
         NavigationStack {
-            Text("Your Memory Palaces")
-                .navigationTitle("Memory Palace")
+            VStack {
+                Text("Your Memory Palaces")
+                    .font(.title2)
+                    .padding(.bottom)
+                // Placeholder for future palace list
+                Text("(Create and manage your palaces here)")
+                    .foregroundColor(.secondary)
+            }
+            .navigationTitle("Memory Palace")
         }
     }
 }
