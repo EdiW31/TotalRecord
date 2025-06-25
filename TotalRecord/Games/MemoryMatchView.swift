@@ -73,6 +73,17 @@ struct MemoryMatchView: View {
                     .font(.title2)
                     .foregroundColor(.green)
                     .padding()
+                NavigationLink(
+                    destination: MemoryMatchSetupView()
+                ) {
+                    Text("Restart Game!")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }.padding()
             }
             if timeLeft == 0 && !gameFinished {
                 Text("⏰ Time's up! Try again!")

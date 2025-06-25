@@ -18,17 +18,17 @@ struct MemoryMatchSetupView: View{
                 }
             }
             .pickerStyle(.segmented)
-            NavigationLink(
-                destination: MemoryMatchView(numberOfPairs: selectedPairs)
-            ) {
-                Text("Start Game")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
+                NavigationLink(
+                    destination: MemoryMatchView(numberOfPairs: selectedPairs)
+                ) {
+                    Text("Restart Game")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
         }
         .padding()
         .background(
