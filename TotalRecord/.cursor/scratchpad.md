@@ -56,13 +56,34 @@
       - Animations and UI polish can greatly improve user experience.
     - **Reflection:** Both solutions are valid; the AI version adds a few best practices for polish and user experience. You can combine ideas from both as you continue building!
 
-- [ ] Task 3: Add scoring, timer, and difficulty settings to Memory Match
+- [x] Task 3: Add scoring, timer, and difficulty settings to Memory Match
   - ✅ Success Criteria: Game tracks score, time, and allows difficulty selection.
   - 🎯 Learning Goal: Implement timers, scoring logic, and user settings.
   - 📘 Educator Notes:
-    - Use `Timer.publish` and `.onReceive` for game timers.
-    - Store scores in `@State` or `@ObservedObject`.
-    - **Exercise:** Add a timer to a view and display elapsed time.
+    - Use `Timer` and `.onAppear`/`.onDisappear` for robust game timers.
+    - Store scores in `@State` and update on matches.
+    - Use a setup screen to let users pick difficulty (number of pairs).
+    - **Exercise:** Add a timer to a view and display elapsed time, and update score on correct matches.
+  - 🧑‍🏫 **Educator Summary:**
+    - **Review of Commit 1e3960d4fffd2d330671b8a3a63239215a2f170e:**
+      - You implemented a setup screen for selecting the number of pairs, and passed this value to the game view.
+      - The timer is set based on the number of pairs, and is managed with a `Timer` instance, started in `.onAppear` and stopped in `.onDisappear` or when the game ends.
+      - Scoring is handled with a `@State` variable, incremented on each match.
+      - The UI clearly displays time left and score, and disables input when the game is finished or time runs out.
+      - You use `.onChange` to stop the timer when the game is finished or time is up, which is a best practice in SwiftUI.
+      - The code is clean, well-structured, and follows SwiftUI conventions for state and navigation.
+    - **Strengths:**
+      - Robust timer logic that is not affected by UI state changes.
+      - Good use of state for score, timer, and game status.
+      - Clear user feedback for game over and time up.
+      - Modular design with a setup screen and game view.
+    - **Suggestions:**
+      [x]- Consider removing the unused `timerRun` variable if not needed.
+      [x]- You could add a "Play Again" button to reset the game after finishing.
+      [x]- For even more robust state, consider using a ViewModel for larger games. (here i only organised the code to look good and everything it s ordonated)
+      [x]- Make so that the game openes in a new tab and not like you could swipe from it back to the old one, this also is better for restart button too.
+    - **Overall:**
+      - Your approach is excellent and demonstrates a strong understanding of SwiftUI state, timer, and navigation patterns. Well done!
 
 - [ ] Task 4: Implement Sequence Recall game mode
   - ✅ Success Criteria: User can view and repeat a sequence of cards, with increasing difficulty.
@@ -131,7 +152,7 @@
 ## Project Status Board
 - [x] Task 1: Set up SwiftUI project structure and navigation
 - [x] Task 2: Implement Memory Match game logic and UI
-- [ ] Task 3: Add scoring, timer, and difficulty to Memory Match
+- [x] Task 3: Add scoring, timer, and difficulty to Memory Match
 - [ ] Task 4: Implement Sequence Recall game mode
 - [ ] Task 5: Implement Card Locator game mode
 - [ ] Task 6: Implement Speed Match game mode
