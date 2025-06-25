@@ -58,7 +58,7 @@ struct GamesMenuView: View {
                 // Placeholder for future game mode navigation
                 Text("(Game modes will appear here)")
                     .foregroundColor(.secondary)
-                NavigationLink("Memory Match", destination: MemoryMatchView())
+                NavigationLink("Memory Match", destination: MemoryMatchSetupView())
             }
             .navigationTitle("Games")
         }
