@@ -9,8 +9,9 @@ struct Card: Identifiable {
 }
 struct MemoryMatchView: View {
     let numberOfPairs: Int;
-
     let allEmojis = ["🍎", "🍌", "🥝", "🌶️", "🍇", "🍉", "🍓", "🍒"]
+    // 2 columns for a 2x2 grid
+    let columns = [GridItem(.flexible()), GridItem(.flexible())]
 
     // Task #2
     @State private var cards: [Card]
@@ -24,9 +25,65 @@ struct MemoryMatchView: View {
     @State private var score: Int = 0
     @State private var gameFinished: Bool = false
 
-    // 2 columns for a 2x2 grid
-    let columns = [GridItem(.flexible()), GridItem(.flexible())]
+    // Functie pentru Start Timer
+    func startTimer() {
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            if timeLeft > 0 && timerRun == true{
+                timeLeft -= 1
+            }
+        }
+    }
 
+    // Functie pentru Stop Timer
+    func stopTimer(){
+        timer?.invalidate()
+        timer = nil
+    }
+
+    // Functie pentru Logica Jocului care se foloseste de structura CardView
+    func flipCard(at index: Int) {
+        guard !cards[index].isFaceUp, !cards[index].isMatched, !isProcessing, !gameFinished, timeLeft > 0 else { return }
+        if let firstIndex = indexOfFaceUpCard {
+            // Second card flipped
+            cards[index].isFaceUp = true
+            isProcessing = true
+            if cards[firstIndex].content == cards[index].content {
+                // Match found
+                cards[firstIndex].isMatched = true
+                cards[index].isMatched = true
+                indexOfFaceUpCard = nil
+                isProcessing = false
+                self.score += 10;
+                if cards.allSatisfy({ $0.isMatched }) {
+                    gameFinished = true
+                }
+            } else {
+                // No match: flip both back after delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                    cards[firstIndex].isFaceUp = false
+                    cards[index].isFaceUp = false
+                    indexOfFaceUpCard = nil
+                    isProcessing = false
+                }
+            }
+        } else {
+            // First card flipped
+            for i in cards.indices { cards[i].isFaceUp = false }
+            cards[index].isFaceUp = true
+            indexOfFaceUpCard = index
+        }
+    }
+
+    // Function to check if all cards are matched
+    func isGameFinished() -> Bool {
+        self.timerRun = false;
+        stopTimer()
+        return cards.allSatisfy { $0.isMatched }
+        
+    }
+
+    // Init este ce se initializeaza atunci cand se creeaza pagina
     init(numberOfPairs: Int){
         self.numberOfPairs = numberOfPairs
         // Select the correct number of unique emojis
@@ -110,65 +167,6 @@ struct MemoryMatchView: View {
                 stopTimer()
             }
         }
-    }
-
-    func startTimer() {
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            if timeLeft > 0 && timerRun == true{
-                timeLeft -= 1
-            }
-        }
-    }
-
-    // functie pentru stop timer
-    func stopTimer(){
-        timer?.invalidate()
-        timer = nil
-    }
-
-    
-
-    // Game logic for flipping and matching cards
-    func flipCard(at index: Int) {
-        guard !cards[index].isFaceUp, !cards[index].isMatched, !isProcessing, !gameFinished, timeLeft > 0 else { return }
-        if let firstIndex = indexOfFaceUpCard {
-            // Second card flipped
-            cards[index].isFaceUp = true
-            isProcessing = true
-            if cards[firstIndex].content == cards[index].content {
-                // Match found
-                cards[firstIndex].isMatched = true
-                cards[index].isMatched = true
-                indexOfFaceUpCard = nil
-                isProcessing = false
-                self.score += 10;
-                if cards.allSatisfy({ $0.isMatched }) {
-                    gameFinished = true
-                }
-            } else {
-                // No match: flip both back after delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-                    cards[firstIndex].isFaceUp = false
-                    cards[index].isFaceUp = false
-                    indexOfFaceUpCard = nil
-                    isProcessing = false
-                }
-            }
-        } else {
-            // First card flipped
-            for i in cards.indices { cards[i].isFaceUp = false }
-            cards[index].isFaceUp = true
-            indexOfFaceUpCard = index
-        }
-    }
-
-    // Function to check if all cards are matched
-    func isGameFinished() -> Bool {
-        self.timerRun = false;
-        stopTimer()
-        return cards.allSatisfy { $0.isMatched }
-        
     }
 }
 
