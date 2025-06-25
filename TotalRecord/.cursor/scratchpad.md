@@ -81,7 +81,7 @@
       [x]- Consider removing the unused `timerRun` variable if not needed.
       [x]- You could add a "Play Again" button to reset the game after finishing.
       [x]- For even more robust state, consider using a ViewModel for larger games. (here i only organised the code to look good and everything it s ordonated)
-      [ ]- Make so that the game openes in a new tab and not like you could swipe from it back to the old one, this also is better for restart button too.
+      [x]- Make so that the game openes in a new tab and not like you could swipe from it back to the old one, this also is better for restart button too.
     - **Overall:**
       - Your approach is excellent and demonstrates a strong understanding of SwiftUI state, timer, and navigation patterns. Well done!
 

@@ -9,6 +9,7 @@ struct Card: Identifiable {
 }
 struct MemoryMatchView: View {
     let numberOfPairs: Int;
+    var onRestart: (() -> Void)? = nil
     let allEmojis = ["🍎", "🍌", "🥝", "🌶️", "🍇", "🍉", "🍓", "🍒"]
     // 2 columns for a 2x2 grid
     let columns = [GridItem(.flexible()), GridItem(.flexible())]
@@ -84,8 +85,9 @@ struct MemoryMatchView: View {
     }
 
     // Init este ce se initializeaza atunci cand se creeaza pagina
-    init(numberOfPairs: Int){
+    init(numberOfPairs: Int, onRestart: (() -> Void)? = nil) {
         self.numberOfPairs = numberOfPairs
+        self.onRestart = onRestart
         // Select the correct number of unique emojis
         let selectedEmojis = Array(allEmojis.shuffled().prefix(numberOfPairs))
         // Duplicate and shuffle for pairs
@@ -130,23 +132,32 @@ struct MemoryMatchView: View {
                     .font(.title2)
                     .foregroundColor(.green)
                     .padding()
-                NavigationLink(
-                    destination: MemoryMatchSetupView()
-                ) {
-                    Text("Restart Game!")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }.padding()
+                Button("Restart Game!") {
+                    onRestart?()
+                }
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+                .padding()
             }
             if timeLeft == 0 && !gameFinished {
                 Text("⏰ Time's up! Try again!")
                     .font(.title2)
                     .foregroundColor(.red)
                     .padding()
+                 Button("Restart Game! YOU LOST :((") {
+                    onRestart?()
+                }
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.red)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+                .padding()
             }
         }
         .background(Color.gray.opacity(0.1))

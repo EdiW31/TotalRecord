@@ -59,6 +59,7 @@ struct GamesMenuView: View {
                 Text("(Game modes will appear here)")
                     .foregroundColor(.secondary)
                 NavigationLink("Memory Match", destination: MemoryMatchSetupView())
+                    .navigationBarBackButtonHidden(true)
             }
             .navigationTitle("Games")
         }
