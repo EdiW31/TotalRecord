@@ -12,10 +12,13 @@ struct MemoryMatchView: View {
 
     let allEmojis = ["🍎", "🍌", "🥝", "🌶️", "🍇", "🍉", "🍓", "🍒"]
 
+    // Task #2
     @State private var cards: [Card]
     @State private var indexOfFaceUpCard: Int? = nil // starea cardului care este ales
     @State private var isProcessing: Bool = false // Prevent taps during animation
     @State private var timeLeft: Int
+
+    // Task #3
     @State private var timer: Timer? = nil
     @State private var timerRun: Bool = true
     @State private var score: Int = 0
