@@ -51,17 +51,140 @@ struct HomeView: View {
 struct GamesMenuView: View {
     var body: some View {
         NavigationStack {
-            VStack {
-                Text("Choose a game mode")
-                    .font(.title2)
-                    .padding(.bottom)
-                // Placeholder for future game mode navigation
-                Text("(Game modes will appear here)")
-                    .foregroundColor(.secondary)
-                NavigationLink("Memory Match", destination: MemoryMatchSetupView())
-                    .navigationBarBackButtonHidden(true)
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Game options box
+                    Spacer().frame(height: 2)
+                    // Game 1
+                    VStack(spacing: 16) {
+                         Image("memory-game") // Make sure you have an image named "games" in your assets
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 220)
+                        .cornerRadius(16)
+                        .shadow(radius: 4)
+                        .padding(.top, 10)
+
+                        // Text("Memory Match 🧩")
+                        // .font(.title)
+                        NavigationLink(
+                            destination: MemoryMatchSetupView()
+                                .navigationBarBackButtonHidden(true)
+                        ) {
+                            Text("Play Memory Match! 🧩")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.green.opacity(0.5))
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                        }
+                        // Add more game mode buttons here as needed
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.green.opacity(0.18))
+                            .shadow(radius: 4)
+                    )
+                    .padding(.horizontal)
+
+                    // Game 2
+                    VStack(spacing: 16) {
+                        Image("sequence-recall-game") // Make sure you have an image named "games" in your assets
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 220)
+                        .cornerRadius(16)
+                        .shadow(radius: 8)
+                        .padding(.top, 10)
+                        NavigationLink(
+                            destination: MemoryMatchSetupView()
+                                .navigationBarBackButtonHidden(true)
+                        ) {
+                            Text("Play Sequence Recall!")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.pink.opacity(0.5))
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                        }
+                        // Add more game mode buttons here as needed
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.pink.opacity(0.18))
+                            .shadow(radius: 4)
+                    )
+                    .padding(.horizontal)
+                    
+                    // Game 3
+                    VStack(spacing: 16) {
+                        Image("card-locator-game") // Make sure you have an image named "games" in your assets
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 220)
+                        .cornerRadius(16)
+                        .shadow(radius: 8)
+                        .padding(.top, 10)
+                        NavigationLink(
+                            destination: MemoryMatchSetupView()
+                                .navigationBarBackButtonHidden(true)
+                        ) {
+                            Text("Play Card Locator! 🃏")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue.opacity(0.5))
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                        }
+                        // Add more game mode buttons here as needed
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.blue.opacity(0.18))
+                            .shadow(radius: 4)
+                    )
+                    .padding(.horizontal)
+
+                    // Game 4
+                    VStack(spacing: 16) {
+                        Image("speed-match-game") // Make sure you have an image named "games" in your assets
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 220)
+                        .cornerRadius(16)
+                        .shadow(radius: 8)
+                        .padding(.top, 10)
+                        NavigationLink(
+                            destination: MemoryMatchSetupView()
+                                .navigationBarBackButtonHidden(true)
+                        ) {
+                            Text("Play Speed Match!")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.purple.opacity(0.5))
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                        }
+                        // Add more game mode buttons here as needed
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.purple.opacity(0.18))
+                            .shadow(radius: 4)
+                    )
+                    .padding(.horizontal)
+                }
             }
-            .navigationTitle("Games")
+            .navigationTitle("Choose a game!")
+            .background(Color.green.opacity(0.10))
         }
     }
 }
