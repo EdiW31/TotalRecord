@@ -67,18 +67,7 @@ struct GamesMenuView: View {
 
                         // Text("Memory Match 🧩")
                         // .font(.title)
-                        NavigationLink(
-                            destination: MemoryMatchSetupView()
-                                .navigationBarBackButtonHidden(true)
-                        ) {
-                            Text("Play Memory Match! 🧩")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.green.opacity(0.5))
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                        }
+                        AppButton(label: "Play Memory Match! 🧩", color: Color.green.opacity(0.5), destination: AnyView(MemoryMatchSetupView().navigationBarBackButtonHidden(true)))
                         // Add more game mode buttons here as needed
                     }
                     .padding()
@@ -98,18 +87,7 @@ struct GamesMenuView: View {
                         .cornerRadius(16)
                         .shadow(radius: 8)
                         .padding(.top, 10)
-                        NavigationLink(
-                            destination: MemoryMatchSetupView()
-                                .navigationBarBackButtonHidden(true)
-                        ) {
-                            Text("Play Sequence Recall!")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.pink.opacity(0.5))
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                        }
+                        AppButton(label: "Play Sequence Recall!", color: Color.pink.opacity(0.5), destination: AnyView(MemoryMatchSetupView().navigationBarBackButtonHidden(true)))
                         // Add more game mode buttons here as needed
                     }
                     .padding()
@@ -129,18 +107,7 @@ struct GamesMenuView: View {
                         .cornerRadius(16)
                         .shadow(radius: 8)
                         .padding(.top, 10)
-                        NavigationLink(
-                            destination: MemoryMatchSetupView()
-                                .navigationBarBackButtonHidden(true)
-                        ) {
-                            Text("Play Card Locator! 🃏")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.blue.opacity(0.5))
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                        }
+                        AppButton(label: "Play Card Locator! 🃏", color: Color.blue.opacity(0.5), destination: AnyView(MemoryMatchSetupView().navigationBarBackButtonHidden(true)))
                         // Add more game mode buttons here as needed
                     }
                     .padding()
@@ -160,18 +127,7 @@ struct GamesMenuView: View {
                         .cornerRadius(16)
                         .shadow(radius: 8)
                         .padding(.top, 10)
-                        NavigationLink(
-                            destination: MemoryMatchSetupView()
-                                .navigationBarBackButtonHidden(true)
-                        ) {
-                            Text("Play Speed Match!")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.purple.opacity(0.5))
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                        }
+                        AppButton(label: "Play Speed Match!", color: Color.purple.opacity(0.5), destination: AnyView(MemoryMatchSetupView().navigationBarBackButtonHidden(true)))
                         // Add more game mode buttons here as needed
                     }
                     .padding()

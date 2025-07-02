@@ -21,15 +21,7 @@ struct MemoryMatchSetupView: View{
                             }
                         }
                         .pickerStyle(.segmented)
-                        Button("Start Game") {
-                            startGame = true
-                        }
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
+                        AppButton(label: "Start Game", color: .blue, action: { startGame = true })
                     }
                     .padding()
                     .background(
