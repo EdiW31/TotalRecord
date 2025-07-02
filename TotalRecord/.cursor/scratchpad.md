@@ -161,12 +161,15 @@
 - [ ] Task 9: Add local persistence for scores, palaces, assignments
 - [ ] Task 10: Polish UI with animations and accessibility
 - [ ] Task 11: Add tests for scoring, timing, sequence validation
+- [x] Remove duplicate AppButton.swift from Games directory to resolve Xcode build error
 
 ## Executor's Feedback or Assistance Requests
-> (To be filled during execution: blockers, bugs, or questions for the user.)
+> Removed Games/AppButton.swift. Only Components/AppButton.swift remains. This should resolve the duplicate build output error.
 
 ## Lessons
 > Task 1: Learned how to use TabView for bottom navigation, how to structure a SwiftUI app with separate views for each section, and how to use NavigationStack for in-tab navigation. Practiced writing beginner-friendly, well-commented code and compared two approaches for clarity and expandability.
 
 ## Lessons
+> Avoid having duplicate SwiftUI component files in multiple directories, as this can cause Xcode build errors about multiple commands producing the same output.
+
 > (To be filled during execution: bugs, fixes, reusable patterns, and key insights.) 
