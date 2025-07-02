@@ -132,32 +132,16 @@ struct MemoryMatchView: View {
                     .font(.title2)
                     .foregroundColor(.green)
                     .padding()
-                Button("Restart Game!") {
-                    onRestart?()
-                }
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(10)
-                .padding()
+                AppButton(label: "Restart Game!", color: .blue, action: { onRestart?() })
+                    .padding()
             }
             if timeLeft == 0 && !gameFinished {
                 Text("⏰ Time's up! Try again!")
                     .font(.title2)
                     .foregroundColor(.red)
                     .padding()
-                 Button("Restart Game! YOU LOST :((") {
-                    onRestart?()
-                }
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.red)
-                .foregroundColor(.white)
-                .cornerRadius(10)
-                .padding()
+                AppButton(label: "Restart Game! YOU LOST :( (", color: .red, action: { onRestart?() })
+                    .padding()
             }
         }
         .background(Color.gray.opacity(0.1))
