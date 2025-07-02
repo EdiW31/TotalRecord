@@ -98,18 +98,19 @@ struct GamesMenuView: View {
                         .cornerRadius(16)
                         .shadow(radius: 8)
                         .padding(.top, 10)
-                        NavigationLink(
-                            destination: MemoryMatchSetupView()
-                                .navigationBarBackButtonHidden(true)
-                        ) {
-                            Text("Play Sequence Recall!")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.pink.opacity(0.5))
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                        }
+                        AppButton(label: "Play Sequence Recall!", color: Color.pink.opacity(0.5), destination: SequenceRecallView().navigationBarBackButtonHidden(true))
+                        // NavigationLink(
+                        //     destination: SequenceRecallView()
+                        //         .navigationBarBackButtonHidden(true)
+                        // ) {
+                        //     Text("Play Sequence Recall!")
+                        //         .font(.headline)
+                        //         .frame(maxWidth: .infinity)
+                        //         .padding()
+                        //         .background(Color.pink.opacity(0.5))
+                        //         .foregroundColor(.white)
+                        //         .cornerRadius(10)
+                        // }
                         // Add more game mode buttons here as needed
                     }
                     .padding()
