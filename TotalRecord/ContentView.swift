@@ -47,26 +47,44 @@ struct HomeView: View {
     }
 }
 
-// Games tab: Placeholder for game selection
+// Helper view for a game card
+struct GameCard<Content: View>: View {
+    let imageName: String
+    let backgroundColor: Color
+    let content: Content
+    init(imageName: String, backgroundColor: Color, @ViewBuilder content: () -> Content) {
+        self.imageName = imageName
+        self.backgroundColor = backgroundColor
+        self.content = content()
+    }
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(height: 220)
+                .cornerRadius(16)
+                .shadow(radius: 8)
+                .padding(.top, 10)
+            content
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(backgroundColor)
+                .shadow(radius: 4)
+        )
+        .padding(.horizontal)
+    }
+}
+
 struct GamesMenuView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Game options box
                     Spacer().frame(height: 2)
-                    // Game 1
-                    VStack(spacing: 16) {
-                         Image("memory-game") // Make sure you have an image named "games" in your assets
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 220)
-                        .cornerRadius(16)
-                        .shadow(radius: 4)
-                        .padding(.top, 10)
-
-                        // Text("Memory Match 🧩")
-                        // .font(.title)
+                    GameCard(imageName: "memory-game", backgroundColor: Color.green.opacity(0.18)) {
                         NavigationLink(
                             destination: MemoryMatchSetupView()
                                 .navigationBarBackButtonHidden(true)
@@ -79,57 +97,22 @@ struct GamesMenuView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(10)
                         }
-                        // Add more game mode buttons here as needed
                     }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.green.opacity(0.18))
-                            .shadow(radius: 4)
-                    )
-                    .padding(.horizontal)
-
-                    // Game 2
-                    VStack(spacing: 16) {
-                        Image("sequence-recall-game") // Make sure you have an image named "games" in your assets
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 220)
-                        .cornerRadius(16)
-                        .shadow(radius: 8)
-                        .padding(.top, 10)
-                        AppButton(label: "Play Sequence Recall!", color: Color.pink.opacity(0.5), destination: SequenceRecallView().navigationBarBackButtonHidden(true))
-                        // NavigationLink(
-                        //     destination: SequenceRecallView()
-                        //         .navigationBarBackButtonHidden(true)
-                        // ) {
-                        //     Text("Play Sequence Recall!")
-                        //         .font(.headline)
-                        //         .frame(maxWidth: .infinity)
-                        //         .padding()
-                        //         .background(Color.pink.opacity(0.5))
-                        //         .foregroundColor(.white)
-                        //         .cornerRadius(10)
-                        // }
-                        // Add more game mode buttons here as needed
+                    GameCard(imageName: "sequence-recall-game", backgroundColor: Color.pink.opacity(0.18)) {
+                        NavigationLink(
+                            destination: SequenceRecallSetupView()
+                                .navigationBarBackButtonHidden(true)
+                        ) {
+                            Text("Play Sequence Recall!")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.pink.opacity(0.5))
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                        }
                     }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.pink.opacity(0.18))
-                            .shadow(radius: 4)
-                    )
-                    .padding(.horizontal)
-                    
-                    // Game 3
-                    VStack(spacing: 16) {
-                        Image("card-locator-game") // Make sure you have an image named "games" in your assets
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 220)
-                        .cornerRadius(16)
-                        .shadow(radius: 8)
-                        .padding(.top, 10)
+                    GameCard(imageName: "card-locator-game", backgroundColor: Color.blue.opacity(0.18)) {
                         NavigationLink(
                             destination: MemoryMatchSetupView()
                                 .navigationBarBackButtonHidden(true)
@@ -142,25 +125,8 @@ struct GamesMenuView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(10)
                         }
-                        // Add more game mode buttons here as needed
                     }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.blue.opacity(0.18))
-                            .shadow(radius: 4)
-                    )
-                    .padding(.horizontal)
-
-                    // Game 4
-                    VStack(spacing: 16) {
-                        Image("speed-match-game") // Make sure you have an image named "games" in your assets
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 220)
-                        .cornerRadius(16)
-                        .shadow(radius: 8)
-                        .padding(.top, 10)
+                    GameCard(imageName: "speed-match-game", backgroundColor: Color.purple.opacity(0.18)) {
                         NavigationLink(
                             destination: MemoryMatchSetupView()
                                 .navigationBarBackButtonHidden(true)
@@ -173,15 +139,7 @@ struct GamesMenuView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(10)
                         }
-                        // Add more game mode buttons here as needed
                     }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.purple.opacity(0.18))
-                            .shadow(radius: 4)
-                    )
-                    .padding(.horizontal)
                 }
             }
             .navigationTitle("Choose a game!")
