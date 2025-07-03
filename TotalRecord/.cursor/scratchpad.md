@@ -85,13 +85,17 @@
     - **Overall:**
       - Your approach is excellent and demonstrates a strong understanding of SwiftUI state, timer, and navigation patterns. Well done!
 
-- [ ] Task 4: Implement Sequence Recall game mode
+- [x] Task 4: Implement Sequence Recall game mode
   - ✅ Success Criteria: User can view and repeat a sequence of cards, with increasing difficulty.
   - 🎯 Learning Goal: Manage dynamic sequences and validate user input.
   - 📘 Educator Notes:
-    - Arrays and randomization for sequence generation.
-    - Compare user input to stored sequence.
-    - **Exercise:** Generate a random array and check if user input matches.
+    - You built a Sequence Recall game where the app shows a sequence of emoji cards for a few seconds, then hides them and asks the user to tap the emojis in the same order.
+    - The sequence is stored in a state variable and generated randomly each round.
+    - User input is collected by tapping cards, and each tap is checked against the correct sequence using a simple comparison (with zip).
+    - If the user makes a mistake, a message is shown and the game restarts after a short delay. If the user gets the whole sequence right, the level increases and a new, longer sequence is shown.
+    - The UI uses SwiftUI's VStack, ZStack, and LazyVGrid for layout, and state variables to control what is shown. Animations make the cards appear smoothly and bounce when tapped.
+    - The design is clean, centered, and visually appealing, with clear feedback for the user.
+    - This task helped you practice state management, user input handling, feedback, and modern SwiftUI layout and animation.
 
 - [ ] Task 5: Implement Card Locator game mode
   - ✅ Success Criteria: User can remember and tap the location of hidden cards.
@@ -153,7 +157,7 @@
 - [x] Task 1: Set up SwiftUI project structure and navigation
 - [x] Task 2: Implement Memory Match game logic and UI
 - [x] Task 3: Add scoring, timer, and difficulty to Memory Match
-- [ ] Task 4: Implement Sequence Recall game mode
+- [x] Task 4: Implement Sequence Recall game mode
 - [ ] Task 5: Implement Card Locator game mode
 - [ ] Task 6: Implement Speed Match game mode
 - [ ] Task 7: Build Memory Palace creation and editing UI
