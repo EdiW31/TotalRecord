@@ -1,40 +1,65 @@
 import SwiftUI
 
 struct SequenceRecallSetupView: View {
-    @State private var sequenceLength = 3
+    @State private var sequenceLength = 2
     @State private var startGame = false
 
     var body: some View {
-        ScrollView {
+        ZStack {
+            Color.pink.opacity(0.10).ignoresSafeArea()
             if startGame {
-                SequenceRecallView(sequenceLength: sequenceLength, onRestart: { startGame = false })
+                SequenceRecallView(sequenceLength: $sequenceLength, onRestart: { startGame = false })
             } else {
-                VStack(spacing: 22) {
-                    Text("Sequence Recall Game").font(.largeTitle)
-                    Text("Memorize and repeat the sequence!").font(.title3)
-                    VStack(spacing: 24) {
-                        Text("Select sequence length:")
-                            .font(.title2)
-                        Text("Here you will start with a sequence of numbers and you will have to recall them in order. The sequence will increase every lvl")
-                        .pickerStyle(.segmented)
-                        AppButton(label: "Start Game", color: .blue, action: { startGame = true })
+                VStack(spacing: 32) {
+                    // Title and subtitle
+                    VStack(spacing: 8) {
+                        Text("🧠 Sequence Recall")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                        Text("Memorize and repeat the sequence!")
+                            .font(.title3)
+                            .foregroundColor(.secondary)
                     }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.gray.opacity(0.08))
-                            .shadow(radius: 4)
-                    )
-                    .padding()
+                    // Card-like setup area
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.white.opacity(0.8))
+                            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+                             .frame(height: 370)
+                        VStack(spacing: 24) {
+                            Text("Select sequence length:")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                            Stepper(value: $sequenceLength, in: 2...8) {
+                                Text("Length: \(sequenceLength)")
+                            }
+                            .padding(.horizontal)
+                            Button(action: { startGame = true }) {
+                                Text("Start Game")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.blue)
+                                    .cornerRadius(10)
+                            }
+                        }
+                        .padding(32)
+                    }
+                    .frame(maxWidth: 400)
+                    // Themed image
                     Image(systemName: "arrow.triangle.2.circlepath")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(height: 120)
+                        .frame(height: 100)
                         .foregroundColor(.blue)
+                        .padding()
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                .padding(.horizontal)
                 .navigationTitle("Setup")
                 .navigationBarTitleDisplayMode(.inline)
             }
-        }.background(Color.pink.opacity(0.10))
+        }
     }
 } 
