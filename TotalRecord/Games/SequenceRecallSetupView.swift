@@ -1,13 +1,13 @@
 import SwiftUI
 
 struct SequenceRecallSetupView: View {
-    @State private var sequenceLength = 3
+    @State private var sequenceLength = 6
     @State private var startGame = false
 
     var body: some View {
         ScrollView {
             if startGame {
-                SequenceRecallView(sequenceLength: sequenceLength, onRestart: { startGame = false })
+                SequenceRecallView(sequenceLength: $sequenceLength, onRestart: { startGame = false })
             } else {
                 VStack(spacing: 22) {
                     Text("Sequence Recall Game").font(.largeTitle)

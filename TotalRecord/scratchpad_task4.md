@@ -7,7 +7,7 @@
     - Use @State for variables that change and affect the UI.
     - Example: @State var sequence: [Int] = [], @State var userInput: [Int] = [], @State var isShowingSequence: Bool = true.
 
-- [ ] Task 4.2: Generate and Display the Sequence
+- [x] Task 4.2: Generate and Display the Sequence
   - ✅ Success Criteria: The game generates a random sequence and displays it to the user, one item at a time, with animation.
   - 🎯 Learning Goal: Learn about timers, delays, and animating UI in SwiftUI.
   - 📘 Educator Notes:
