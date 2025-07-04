@@ -114,7 +114,7 @@ struct GamesMenuView: View {
                     }
                     GameCard(imageName: "card-locator-game", backgroundColor: Color.blue.opacity(0.18)) {
                         NavigationLink(
-                            destination: MemoryMatchSetupView()
+                            destination: CardLocatorSetupView()
                                 .navigationBarBackButtonHidden(true)
                         ) {
                             Text("Play Card Locator! 🃏")
