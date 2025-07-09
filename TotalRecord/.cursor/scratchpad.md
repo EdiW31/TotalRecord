@@ -97,7 +97,7 @@
     - The design is clean, centered, and visually appealing, with clear feedback for the user.
     - This task helped you practice state management, user input handling, feedback, and modern SwiftUI layout and animation.
 
-- [ ] Task 5: Implement Card Locator game mode
+- [x] Task 5: Implement Card Locator game mode
   - ✅ Success Criteria: User can remember and tap the location of hidden cards.
   - 🎯 Learning Goal: Use spatial layouts and tap detection.
   - 📘 Educator Notes:
@@ -158,7 +158,7 @@
 - [x] Task 2: Implement Memory Match game logic and UI
 - [x] Task 3: Add scoring, timer, and difficulty to Memory Match
 - [x] Task 4: Implement Sequence Recall game mode
-- [ ] Task 5: Implement Card Locator game mode
+- [x] Task 5: Implement Card Locator game mode
 - [ ] Task 6: Implement Speed Match game mode
 - [ ] Task 7: Build Memory Palace creation and editing UI
 - [ ] Task 8: Implement card-location assignment and recall
@@ -166,6 +166,43 @@
 - [ ] Task 10: Polish UI with animations and accessibility
 - [ ] Task 11: Add tests for scoring, timing, sequence validation
 - [x] Remove duplicate AppButton.swift from Games directory to resolve Xcode build error
+
+---
+
+### 🧑‍🏫 Educator: Card Locator Game - What You Learned and Used
+
+**1. GeometryReader for Responsive Layouts**
+- Used `GeometryReader` to dynamically size the card grid so it fits any device and grid size.
+- Calculated card width/height based on available space, ensuring a non-scrollable, visually balanced grid.
+
+**2. SwiftUI State Management**
+- Managed game state with `@State` variables for target cards, revealed cards, feedback, memorization phase, and timers.
+- Used arrays to track which cards are targets, which are revealed, and to provide immediate feedback.
+
+**3. Grid Layouts with LazyVGrid**
+- Built the card grid using `LazyVGrid` for efficient, flexible layouts.
+- Nested `ForEach` loops and index math to map grid positions to emoji cards.
+
+**4. User Feedback and Game Flow**
+- Highlighted target cards during the memorization phase with a distinct color (pink), and used purple/blue for non-targets.
+- Provided immediate feedback on taps: green for correct, red for incorrect.
+- Used timers to control the memorization and waiting phases, and to manage game flow.
+
+**5. Theming and Visual Design**
+- Applied a consistent blue/purple theme using gradients and color logic.
+- Used rounded rectangles, shadows, and padding for a modern, professional look.
+- Ensured the UI is visually clear, inviting, and easy to use.
+
+**6. SwiftUI Best Practices**
+- Kept logic and UI separate, using clear state and view updates.
+- Used `.disabled()` to prevent unwanted taps during animations or phases.
+- Used `.animation` and transitions for smooth UI updates.
+
+**Learning Outcomes:**
+- You practiced advanced SwiftUI layout with GeometryReader and grid math.
+- You learned to manage complex game state and user feedback.
+- You built a visually appealing, responsive, and user-friendly memory game from scratch.
+- You reinforced best practices for state, layout, and user experience in SwiftUI.
 
 ## Executor's Feedback or Assistance Requests
 > Removed Games/AppButton.swift. Only Components/AppButton.swift remains. This should resolve the duplicate build output error.
