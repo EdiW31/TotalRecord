@@ -2,13 +2,28 @@ import SwiftUI
 
 struct CardLocatorSetupView: View {
     @State private var startGame = false
+    @State private var selectedDifficulty: Difficulty = .easy
+
+    enum Difficulty: String, CaseIterable, Identifiable {
+        case easy = "Easy"
+        case medium = "Medium"
+        case hard = "Hard"
+        var id: String { self.rawValue }
+        var numberOfTargets: Int {
+            switch self {
+            case .easy: return 2
+            case .medium: return 3
+            case .hard: return 5
+            }
+        }
+    }
 
     var body: some View {
         ZStack {
             LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.2), Color.purple.opacity(0.1)]), startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
             if startGame {
-                CardLocatorView(onRestart: { startGame = false })
+                CardLocatorView(onRestart: { startGame = false }, numberOfTargets: selectedDifficulty.numberOfTargets)
             } else {
                 VStack(spacing: 32) {
                     // Title and subtitle
@@ -27,16 +42,26 @@ struct CardLocatorSetupView: View {
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
                     }
-                    // Placeholder for future setup options
+                    // Difficulty Picker
                     ZStack {
                         RoundedRectangle(cornerRadius: 20)
                             .fill(Color.white.opacity(0.8))
                             .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
                             .frame(height: 200)
                         VStack(spacing: 24) {
-                            Text("Setup options coming soon!")
+                            Text("Select Difficulty")
                                 .font(.title2)
                                 .fontWeight(.semibold)
+                            Picker("Difficulty", selection: $selectedDifficulty) {
+                                ForEach(Difficulty.allCases) { difficulty in
+                                    Text(difficulty.rawValue).tag(difficulty)
+                                }
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                            .padding(.horizontal)
+                            Text("Targets to memorize: \(selectedDifficulty.numberOfTargets)")
+                                .font(.headline)
+                                .foregroundColor(.blue)
                         }
                         .padding(32)
                     }
@@ -55,7 +80,6 @@ struct CardLocatorSetupView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 .padding(.horizontal)
-                .navigationTitle("Setup")
                 .navigationBarTitleDisplayMode(.inline)
             }
         }
