@@ -81,7 +81,6 @@ struct MemoryMatchView: View {
         self.timerRun = false;
         stopTimer()
         return cards.allSatisfy { $0.isMatched }
-        
     }
 
     // Init este ce se initializeaza atunci cand se creeaza pagina
@@ -104,54 +103,98 @@ struct MemoryMatchView: View {
     }
 
     var body: some View {
-        VStack {
-            Text("Memory Match")
-                .font(.largeTitle)
-                .padding(.top)
-            HStack{
-                Text("Time Left ⌛: \(timeLeft)")
-                .font(.title2)
-                .padding()
-                Text("Score 💯: \(score)")
-                .font(.title2)
-                .padding()
-            }
-            LazyVGrid(columns: columns, spacing: 20) {
-                ForEach(cards.indices, id: \ .self) { index in
-                    CardView(card: cards[index])
-                        .onTapGesture {
-                            flipCard(at: index)
+        ZStack {
+            // Lighter green gradient background, fullscreen
+            LinearGradient(gradient: Gradient(colors: [Color.green.opacity(0.12), Color.teal.opacity(0.10), Color.green.opacity(0.08)]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                .ignoresSafeArea()
+            VStack(spacing: 24) {
+                // Header
+                VStack(spacing: 4) {
+                    Text("Memory Match")
+                        .font(.system(size: 38, weight: .bold, design: .rounded))
+                        .foregroundColor(.green)
+                        .shadow(color: .green.opacity(0.12), radius: 4, x: 0, y: 2)
+                    HStack(spacing: 12) {
+                        Label("Time Left", systemImage: "clock.fill")
+                            .font(.title3)
+                            .foregroundColor(.teal)
+                        Text("\(timeLeft)")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
+                        Label("Score", systemImage: "star.fill")
+                            .font(.title3)
+                            .foregroundColor(.teal)
+                        Text("\(score)")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
+                    }
+                    .padding(.top, 2)
+                }
+                // Card grid in a card-like container
+                ZStack {
+                    RoundedRectangle(cornerRadius: 28)
+                        .fill(Color.white.opacity(0.85))
+                        .shadow(color: .green.opacity(0.08), radius: 12, x: 0, y: 6)
+                    VStack(spacing: 0) {
+                        LazyVGrid(columns: columns, spacing: 20) {
+                            ForEach(cards.indices, id: \ .self) { index in
+                                CardView(card: cards[index])
+                                    .onTapGesture {
+                                        flipCard(at: index)
+                                    }
+                                    .disabled(cards[index].isFaceUp || cards[index].isMatched || isProcessing || gameFinished || timeLeft == 0)
+                                    .padding(12)
+                            }
                         }
-                        .disabled(cards[index].isFaceUp || cards[index].isMatched || isProcessing || gameFinished || timeLeft == 0)
+                        .padding(24)
+                    }
+                }
+                .frame(maxWidth: 420, maxHeight: 520)
+                .padding(.horizontal)
+                Spacer(minLength: 24)
+                if gameFinished {
+                    Button(action: { onRestart?() }) {
+                        Text("Restart Game!")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 32)
+                            .padding(.vertical, 14)
+                            .background(LinearGradient(gradient: Gradient(colors: [Color.green, Color.teal]), startPoint: .leading, endPoint: .trailing))
+                            .cornerRadius(14)
+                            .shadow(radius: 4)
+                    }
+                    .padding()
+                }
+                if timeLeft == 0 && !gameFinished {
+                    Text("⏰ Time's up! Try again!")
+                        .font(.title2)
+                        .foregroundColor(.red)
+                        .padding()
+                    Button(action: { onRestart?() }) {
+                        Text("Restart Game! YOU LOST :( (")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 32)
+                            .padding(.vertical, 14)
+                            .background(LinearGradient(gradient: Gradient(colors: [Color.green, Color.teal]), startPoint: .leading, endPoint: .trailing))
+                            .cornerRadius(14)
+                            .shadow(radius: 4)
+                    }
+                    .padding()
                 }
             }
-            .padding()
-            Spacer()
-            if gameFinished {
-                Text("🎉 Congrats! You matched all the pairs! 🎉")
-                    .font(.title2)
-                    .foregroundColor(.green)
-                    .padding()
-                AppButton(label: "Restart Game!", color: .blue, action: { onRestart?() })
-                    .padding()
-            }
-            if timeLeft == 0 && !gameFinished {
-                Text("⏰ Time's up! Try again!")
-                    .font(.title2)
-                    .foregroundColor(.red)
-                    .padding()
-                AppButton(label: "Restart Game! YOU LOST :( (", color: .red, action: { onRestart?() })
-                    .padding()
-            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .padding(.vertical, 16)
         }
-        .background(Color.gray.opacity(0.1))
+        .background(Color.white.opacity(0.7))
         .onAppear {
             startTimer()
         }
         .onDisappear {
             stopTimer()
         }
-
         .onChange(of: gameFinished) {
             if gameFinished {
                 stopTimer()
@@ -171,15 +214,15 @@ struct CardView: View {
     var body: some View {
         ZStack {
             if card.isFaceUp || card.isMatched {
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: 16)
                     .fill(Color.white)
-                    .shadow(radius: 4)
+                    .shadow(radius: 6)
                 Text(card.content)
-                    .font(.largeTitle)
+                    .font(.system(size: 44))
             } else {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.blue)
-                    .shadow(radius: 4)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(LinearGradient(gradient: Gradient(colors: [Color.green, Color.teal]), startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .shadow(radius: 6)
             }
         }
         .frame(height: 100)
@@ -190,3 +233,4 @@ struct CardView: View {
         .animation(.easeInOut, value: card.isFaceUp)
     }
 }
+
