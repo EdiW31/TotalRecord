@@ -30,25 +30,33 @@ struct SequenceRecallView: View {
 
     var body: some View {
         ZStack {
-            Color.pink.opacity(0.03).ignoresSafeArea()
-            VStack(spacing: 24) {
-                // Title
-                Text("🧠 Sequence Recall")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .padding(.top, 16)
-
+            LinearGradient(gradient: Gradient(colors: [Color.pink.opacity(0.13), Color.purple.opacity(0.10)]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                .ignoresSafeArea()
+            VStack(spacing: 28) {
+                // Header
+                VStack(spacing: 6) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 60, height: 60)
+                        .foregroundColor(.pink)
+                        .shadow(radius: 8)
+                    Text("Sequence Recall")
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .foregroundColor(.pink)
+                        .shadow(color: .pink.opacity(0.10), radius: 4, x: 0, y: 2)
+                }
                 // Info Bar
                 HStack(spacing: 24) {
-                    VStack {
-                        Text("Level)")
+                    VStack(spacing: 2) {
+                        Text("Level")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Text("\(level)")
                             .font(.title2)
                             .fontWeight(.semibold)
                     }
-                    VStack {
+                    VStack(spacing: 2) {
                         Text("Score")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -56,7 +64,7 @@ struct SequenceRecallView: View {
                             .font(.title2)
                             .fontWeight(.semibold)
                     }
-                    VStack {
+                    VStack(spacing: 2) {
                         Text("Time")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -67,33 +75,33 @@ struct SequenceRecallView: View {
                     }
                     Spacer()
                     Button(action: { onRestart?() }) {
-                        Image(systemName: "clear")
+                        Image(systemName: "arrow.clockwise.circle.fill")
                             .font(.title2)
+                            .foregroundColor(.white)
                             .padding(8)
-                            .background(Color.blue.opacity(0.6))
+                            .background(LinearGradient(gradient: Gradient(colors: [Color.pink, Color.purple]), startPoint: .topLeading, endPoint: .bottomTrailing))
                             .clipShape(Circle())
+                            .shadow(radius: 4)
                     }
                     .buttonStyle(PlainButtonStyle())
                     .accessibilityLabel("Restart Game")
                 }
                 .padding(.horizontal)
-
                 // Feedback Message
                 if !message.isEmpty {
                     Text(message)
                         .font(.headline)
-                        .foregroundColor(.red)
+                        .foregroundColor(.pink)
                         .padding(.vertical, 4)
                         .transition(.opacity)
                 }
-
                 // Main Card Area
                 ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white.opacity(0.7))
-                        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-                        .frame(height: 450)
-                    VStack(spacing: 16) {
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(Color.white.opacity(0.92))
+                        .shadow(color: .pink.opacity(0.10), radius: 10, x: 0, y: 4)
+                        .frame(height: 420)
+                    VStack(spacing: 18) {
                         if showSequence {
                             Text("Memorize the sequence!")
                                 .font(.subheadline)
@@ -114,7 +122,6 @@ struct SequenceRecallView: View {
                                     })
                                 }
                             }
-
                             // User Input Display
                             VStack(spacing: 4) {
                                 Text("Your Input")
@@ -135,9 +142,9 @@ struct SequenceRecallView: View {
                 }
                 .padding(.horizontal)
                 .frame(maxWidth: 420)
-
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .padding(.vertical, 10)
         }
         .animation(.easeInOut, value: showSequence)
         .onAppear{
@@ -192,6 +199,4 @@ struct SequenceRecallView: View {
             }
         }
     }
-
-
 }
