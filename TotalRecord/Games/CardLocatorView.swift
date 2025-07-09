@@ -30,93 +30,136 @@ struct CardLocatorView: View {
     @State private var GameFinished = false;
 
     var body: some View {
-        VStack(spacing: 32) {
-            Text("Card Locator Game")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-            if(!waitingPhase){
-                Text("Score 💯: \(score)")
-            }
-            if !message.isEmpty {
-                Text(message)
-                    .font(.headline)
-                    .foregroundColor(.red)
-            }
-            if waitingPhase {
-                Spacer()
+        ZStack {
+            // Modern gradient background
+            LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.18), Color.purple.opacity(0.18)]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                .ignoresSafeArea()
+            VStack(spacing: 24) {
+                // Header
+                VStack(spacing: 4) {
+                    Text("Card Locator")
+                        .font(.system(size: 38, weight: .bold, design: .rounded))
+                        .foregroundColor(.blue)
+                        .shadow(color: .blue.opacity(0.12), radius: 4, x: 0, y: 2)
+                    if !waitingPhase {
+                        HStack(spacing: 12) {
+                            Label("Score", systemImage: "star.fill")
+                                .font(.title3)
+                                .foregroundColor(.purple)
+                            Text("\(score)")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                        }
+                        .padding(.top, 2)
+                    }
+                }
+                // Feedback message
+                if !message.isEmpty {
+                    Text(message)
+                        .font(.headline)
+                        .foregroundColor(message.contains("Wrong") ? .red : .green)
+                        .padding(8)
+                        .background(Color.white.opacity(0.7))
+                        .cornerRadius(10)
+                        .shadow(radius: 2)
+                        .transition(.opacity)
+                }
+                // Timer or Game Grid
+                if waitingPhase {
+                    Spacer()
                     ZStack {
                         Circle()
-                            .stroke(Color.blue.opacity(0.3), lineWidth: 16)
-                            .frame(width: 120, height: 120)
+                            .stroke(Color.blue.opacity(0.18), lineWidth: 18)
+                            .frame(width: 140, height: 140)
                         Circle()
                             .trim(from: 0, to: CGFloat(waitingTimeRemaining) / 10.0)
-                            .stroke(Color.blue, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                            .stroke(AngularGradient(gradient: Gradient(colors: [Color.purple, Color.blue]), center: .center), style: StrokeStyle(lineWidth: 14, lineCap: .round))
                             .rotationEffect(.degrees(-90))
-                            .frame(width: 120, height: 120)
+                            .frame(width: 140, height: 140)
                             .animation(.linear(duration: 1), value: waitingTimeRemaining)
                         Text("\(waitingTimeRemaining)")
-                            .font(.system(size: 48, weight: .bold, design: .rounded))
+                            .font(.system(size: 54, weight: .bold, design: .rounded))
                             .foregroundColor(.blue)
+                            .shadow(radius: 2)
                     }
-                    VStack{
-                        Text("Now we need to wait for this timer to get down to 0.").font(.title2)
-                    }
-                Spacer()
-            } else {
-                GeometryReader { geometry in
-                    let cardWidth = geometry.size.width / CGFloat(gridColumns)
-                    let cardHeight = geometry.size.height / CGFloat(gridRows)
-                    VStack(spacing: 0) {
-                        ForEach(0..<gridRows, id: \.self) { row in
-                            HStack(spacing: 0) {
-                                ForEach(0..<gridColumns, id: \.self) { col in
-                                    let index = row * gridColumns + col
-                                    if index < allEmojis.count {
-                                        let isTarget = targetCards.contains(index)
-                                        let showEmoji = memorizationPhase || revealed[index]
-                                        let cardColor: Color = {
-                                            if memorizationPhase && isTarget {
-                                                return .yellow // Highlight targets during memorization
-                                            } else if let fb = feedback[index] {
-                                                return fb
-                                            } else if memorizationPhase {
-                                                return .green // Non-targets during memorization
-                                            } else {
-                                                return .blue
+                    .padding(.bottom, 12)
+                    Text("Get ready! The game will start soon.")
+                        .font(.title3)
+                        .foregroundColor(.secondary)
+                        .padding(.bottom, 32)
+                    Spacer()
+                } else {
+                    // Card grid in a card-like container
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 28)
+                            .fill(Color.white.opacity(0.85))
+                            .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+                        VStack(spacing: 0) {
+                            GeometryReader { geometry in
+                                let cardWidth = geometry.size.width / CGFloat(gridColumns)
+                                let cardHeight = geometry.size.height / CGFloat(gridRows)
+                                VStack(spacing: 0) {
+                                    ForEach(0..<gridRows, id: \.self) { row in
+                                        HStack(spacing: 0) {
+                                            ForEach(0..<gridColumns, id: \.self) { col in
+                                                let index = row * gridColumns + col
+                                                if index < allEmojis.count {
+                                                    let isTarget = targetCards.contains(index)
+                                                    let showEmoji = memorizationPhase || revealed[index]
+                                                    let cardColor: Color = {
+                                                        if memorizationPhase && isTarget {
+                                                            return Color.pink // Highlight targets to memorize
+                                                        } else if let fb = feedback[index] {
+                                                            return fb == .green ? Color.green : Color.red // Green for correct, red for incorrect
+                                                        } else if memorizationPhase {
+                                                            return Color.purple // Non-targets during memorization
+                                                        } else {
+                                                            return Color.blue // Default after memorization
+                                                        }
+                                                    }()
+                                                    GameCards(
+                                                        emoji: showEmoji ? allEmojis[index] : "?",
+                                                        color: cardColor,
+                                                        onTap: {
+                                                            handleTap(index: index)
+                                                        }
+                                                    )
+                                                    .frame(width: cardWidth, height: cardHeight)
+                                                    .disabled(memorizationPhase || revealed[index])
+                                                    .padding(6)
+                                                }
                                             }
-                                        }()
-                                        GameCards(
-                                            emoji: showEmoji ? allEmojis[index] : "?",
-                                            color: cardColor,
-                                            onTap: {
-                                                handleTap(index: index)
-                                            }
-                                        )
-                                        .frame(width: cardWidth, height: cardHeight)
-                                        .disabled(memorizationPhase || revealed[index])
+                                        }
                                     }
                                 }
+                                .frame(width: geometry.size.width, height: geometry.size.height)
                             }
                         }
+                        .padding(36) // Increased padding for a more spacious look
                     }
-                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .frame(maxWidth: 420, maxHeight: 520)
+                    .padding(.horizontal)
                 }
-                .padding()
-            }
-            if(GameFinished){
-                Button(action: { onRestart?() }) {
-                    Text("Start a new Game!")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .cornerRadius(10)
+                // Play Again / Restart Button
+                if GameFinished {
+                    Button(action: { onRestart?() }) {
+                        Text("Start a new Game!")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .padding(.horizontal, 40)
+                            .padding(.vertical, 16)
+                            .background(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .leading, endPoint: .trailing))
+                            .foregroundColor(.white)
+                            .cornerRadius(16)
+                            .shadow(radius: 5)
+                    }
+                    .padding(.top, 12)
                 }
-                .padding()
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .padding(.vertical, 16)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .background(Color.white.opacity(0.7))
         .onAppear {
             startGame()

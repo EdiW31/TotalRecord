@@ -15,7 +15,7 @@
 - [x] 6. Provide feedback: highlight correct/incorrect taps, show a message for win/lose
 - [x] 7. Add scoring: track number of correct taps, mistakes, and rounds completed
 - [x] 8. Add a "Play Again" or "Restart" button to reset the game state
-- [ ] 9. Polish UI: add animations for card reveal/hide, feedback colors, and responsive layout
+- [x] 9. Polish UI: add animations for card reveal/hide, feedback colors, and responsive layout
 - [x] 10. (Optional) Add difficulty settings to setup screen (e.g., grid size, number of targets)
 
 ## Notes
