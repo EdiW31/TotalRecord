@@ -1,5 +1,6 @@
 import SwiftUI
 
+
 struct SequenceRecallView: View {
     @Binding var sequenceLength: Int
     var onRestart: (() -> Void)? = nil
@@ -99,7 +100,7 @@ struct SequenceRecallView: View {
                                 .foregroundColor(.secondary)
                             LazyVGrid(columns: columns, spacing: 16) {
                                 ForEach(sequence.indices, id: \.self) { i in
-                                    SequeceRecallCard(emoji: allEmojis[sequence[i]])
+                                    GameCards(emoji: allEmojis[sequence[i]], color: .pink)
                                 }
                             }
                         } else {
@@ -108,9 +109,9 @@ struct SequenceRecallView: View {
                                 .foregroundColor(.secondary)
                             LazyVGrid(columns: columns, spacing: 16) {
                                 ForEach(allEmojis.indices, id: \.self) { i in
-                                    SequeceRecallCard(emoji: allEmojis[i]) {
+                                    GameCards(emoji: allEmojis[i], color: .pink, onTap: {
                                         handleUserInput(index: i)
-                                    }
+                                    })
                                 }
                             }
 
@@ -193,39 +194,4 @@ struct SequenceRecallView: View {
     }
 
 
-}
-
-struct SequeceRecallCard: View {
-    let emoji: String
-    var onTap: (() -> Void)? = nil
-    @State private var appeared = false
-    @State private var tapped = false
-
-    var body: some View {
-        Text(emoji)
-            .font(.largeTitle)
-            .frame(width: 100, height: 100)
-            .background(Color.pink.opacity(0.1))
-            .border(Color.pink.opacity(0.2))
-            .cornerRadius(10)
-            .shadow(radius: 4)
-            .scaleEffect(tapped ? 1.2 : (appeared ? 1 : 0.5))
-            .opacity(appeared ? 1 : 0)
-            .onAppear {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    appeared = true
-                }
-            }
-            .onTapGesture {
-                withAnimation(.interpolatingSpring(stiffness: 200, damping: 5)) {
-                    tapped = true
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    withAnimation {
-                        tapped = false
-                    }
-                }
-                onTap?()
-            }
-    }
 }
