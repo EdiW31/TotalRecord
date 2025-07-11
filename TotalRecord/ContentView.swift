@@ -151,35 +151,35 @@ struct HomeView: View {
 }
 
 // Helper view for a game card
-struct GameCard<Content: View>: View {
-    let imageName: String
-    let backgroundColor: Color
-    let content: Content
-    init(imageName: String, backgroundColor: Color, @ViewBuilder content: () -> Content) {
-        self.imageName = imageName
-        self.backgroundColor = backgroundColor
-        self.content = content()
-    }
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(imageName)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(height: 220)
-                .cornerRadius(16)
-                .shadow(radius: 8)
-                .padding(.top, 10)
-            content
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(backgroundColor)
-                .shadow(radius: 4)
-        )
-        .padding(.horizontal)
-    }
-}
+// struct GameCard<Content: View>: View {
+//     let imageName: String
+//     let backgroundColor: Color
+//     let content: Content
+//     init(imageName: String, backgroundColor: Color, @ViewBuilder content: () -> Content) {
+//         self.imageName = imageName
+//         self.backgroundColor = backgroundColor
+//         self.content = content()
+//     }
+//     var body: some View {
+//         VStack(spacing: 16) {
+//             Image(imageName)
+//                 .resizable()
+//                 .aspectRatio(contentMode: .fit)
+//                 .frame(height: 220)
+//                 .cornerRadius(16)
+//                 .shadow(radius: 8)
+//                 .padding(.top, 10)
+//             content
+//         }
+//         .padding()
+//         .background(
+//             RoundedRectangle(cornerRadius: 16)
+//                 .fill(backgroundColor)
+//                 .shadow(radius: 4)
+//         )
+//         .padding(.horizontal)
+//     }
+// }
 
 #Preview {
     ContentView()
