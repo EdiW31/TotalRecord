@@ -32,6 +32,8 @@ struct ContentView: View {
                             Text("Memory Palace")
                         }
                 }
+                .tint(.white) // Ensures all tab bar icons and labels are white
+                .background(.clear) // Optional: makes TabView background transparent
             }
         }
         .onAppear {

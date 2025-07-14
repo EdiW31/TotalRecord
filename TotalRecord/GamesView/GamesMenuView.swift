@@ -42,7 +42,6 @@ struct GamesMenuView: View {
                 }
             }
             .navigationTitle("Choose a game!")
-            .background(Color.green.opacity(0.10))
             .navigationDestination(isPresented: Binding(
                 get: { navigateTo != nil },
                 set: { if !$0 { navigateTo = nil } }
