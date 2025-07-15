@@ -24,6 +24,7 @@ struct MemoryMatchView: View {
     @State private var score: Int = 0
     @State private var gameFinished: Bool = false
     private var totalTime: Int
+    @Environment(\.dismiss) private var dismiss
 
     func startTimer() {
         timer?.invalidate()
@@ -96,24 +97,24 @@ struct MemoryMatchView: View {
 
     var body: some View {
         ZStack {
-            // Background image with blur
             Image("memory-match-background")
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
                 .blur(radius: 16)
             VStack(spacing: 0) {
-                // Header: Back arrow and progress bar (progress bar hidden on gameFinished)
                 HStack(alignment: .center, spacing: 0) {
-                    Button(action: { /* Add navigation logic here */ }) {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(.white)
-                            .padding(10)
-                            .background(Color.black.opacity(0.18))
-                            .clipShape(Circle())
+                    Button(action: { dismiss() }) {
+                        HStack(alignment: .center, spacing: 0) {
+                            Image(systemName: "chevron.left")
+                                .foregroundColor(.white)
+                        }
+                        .padding(0)
+                        .frame(width: 34, height: 34, alignment: .center)
+                        .background(Color.white.opacity(0.15))
+                        .cornerRadius(500)
                     }
                     if !gameFinished {
-                        // Progress bar fills the rest of the space and reflects time left
                         GeometryReader { geometry in
                             ZStack(alignment: .leading) {
                                 RoundedRectangle(cornerRadius: 8)
@@ -121,8 +122,8 @@ struct MemoryMatchView: View {
                                     .frame(height: 8)
                                 RoundedRectangle(cornerRadius: 8)
                                     .fill(LinearGradient(gradient: Gradient(colors: [Color.green, Color.teal]), startPoint: .leading, endPoint: .trailing))
-                                    .frame(width: geometry.size.width * CGFloat(timeLeft) / CGFloat(totalTime), height: 8)
-                                    .animation(.easeInOut(duration: 0.5), value: timeLeft)
+                                    .frame(width: max(geometry.size.width * CGFloat(timeLeft) / CGFloat(totalTime), 0.0), height: 8)
+                                    .animation(.easeInOut(duration: 1.0), value: timeLeft)
                             }
                         }
                         .frame(height: 8)
@@ -137,38 +138,45 @@ struct MemoryMatchView: View {
                 .padding(.top, 60)
                 .padding(.trailing, 16)
                 .padding(.bottom, 24)
-                // Use a fixed-height spacer to keep the bar at the same height regardless of game state
                 Spacer().frame(height: 33)
-                // Hide score and cards when game is finished
                 if !gameFinished {
-                    Text("\(score)")
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                        .shadow(color: .black.opacity(0.18), radius: 4, x: 0, y: 2)
-                        .padding(.bottom, 8)
+                    HStack {
+                        Spacer()
+                        Text("\(score)")
+                            .font(.system(size: 36, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.18), radius: 4, x: 0, y: 2)
+                        Spacer()
+                    }
+                    .padding(.bottom, 8)
+                }
+                if !gameFinished {
                     ZStack {
-                        LazyVGrid(columns: columns, spacing: 18) {
-                            ForEach(cards.indices, id: \ .self) { index in
-                                CardViewTest(card: cards[index])
+                        LazyVGrid(columns: columns, spacing: 16) {
+                            ForEach(cards) { card in
+                                MemoryGameCard(card: card)
                                     .onTapGesture {
-                                        flipCard(at: index)
+                                        if let idx = cards.firstIndex(where: { $0.id == card.id }) {
+                                            flipCard(at: idx)
+                                        }
                                     }
-                                    .disabled(cards[index].isFaceUp || cards[index].isMatched || isProcessing || gameFinished || timeLeft == 0)
+                                    .disabled(card.isFaceUp || card.isMatched || isProcessing || gameFinished || timeLeft == 0)
                             }
                         }
-                        .padding(24)
+                        .padding(.horizontal, 4)
                     }
                     .frame(maxWidth: 420, maxHeight: 520)
-                    .padding(.horizontal)
+                    .padding(.top, 12)
+                    .padding(.bottom, 56) 
+                    .padding(.horizontal, 0)
                 }
-                // Show confetti overlay and bottom message/button when game is finished
                 if gameFinished {
                     ConfettiOverlay(score: score, onRestart: onRestart)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            .padding(.vertical, 16)
-            // Hide confetti overlay when game is finished (remove ConfettiOverlay)
+            .padding(.vertical, 0)
+            // Hide confetti overlay when game is finished 
         }
         .background(Color.white.opacity(0.7))
         .onAppear {
@@ -192,29 +200,39 @@ struct MemoryMatchView: View {
     }
 }
 
-struct CardViewTest: View {
+struct MemoryGameCard: View {
     let card: Card
     var body: some View {
         ZStack {
             if card.isFaceUp || card.isMatched {
-                // Show emoji on a color-themed background
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(LinearGradient(gradient: Gradient(colors: [Color.green.opacity(0.85), Color.teal.opacity(0.85)]), startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .shadow(radius: 6)
+                // Show emoji on a yellow-themed background
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(LinearGradient(gradient: Gradient(colors: [Color.yellow.opacity(0.92), Color.orange.opacity(0.85)]), startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .shadow(radius: 8)
+                // Dashed border
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(style: StrokeStyle(lineWidth: 2, dash: [7]))
+                    .foregroundColor(Color.black.opacity(0.3))
+                    .padding(6)
                 Text(card.content)
-                    .font(.system(size: 44))
+                    .font(.system(size: 54))
             } else {
                 // Show the card background image when face down
                 Image("cardsbackground")
                     .resizable()
                     .scaledToFill()
-                    .frame(height: 100)
-                    .cornerRadius(16)
+                    .frame(width: 180, height: 140)
+                    .cornerRadius(20)
                     .clipped()
-                    .shadow(radius: 6)
+                    .shadow(radius: 8)
+                // Dashed border
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(style: StrokeStyle(lineWidth: 2, dash: [7]))
+                    .foregroundColor(Color.black.opacity(0.3))
+                    .padding(6)
             }
         }
-        .frame(height: 100)
+        .frame(width: 180, height: 140)
         .rotation3DEffect(
             .degrees(card.isFaceUp || card.isMatched ? 0 : 180),
             axis: (x: 0, y: 1, z: 0)
@@ -223,7 +241,7 @@ struct CardViewTest: View {
     }
 }
 
-// Confetti overlay view
+// Confetti overlay done for Memory game (can be used as a component if needed, waiting for the other games design)
 struct ConfettiOverlay: View {
     let score: Int
     var onRestart: (() -> Void)?
@@ -231,7 +249,6 @@ struct ConfettiOverlay: View {
     let confettiColors: [Color] = [.red, .yellow, .blue, .green, .purple, .orange, .pink]
     var body: some View {
         ZStack {
-            // Simple confetti animation
             GeometryReader { geo in
                 ForEach(0..<30, id: \ .self) { i in
                     Circle()
