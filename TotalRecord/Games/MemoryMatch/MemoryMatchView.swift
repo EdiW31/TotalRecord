@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // Model for a single card, aici initalizam si starile, isfaceup si ismatched
 struct Card: Identifiable {
@@ -22,6 +23,8 @@ struct MemoryMatchView: View {
     @State private var timerRun: Bool = true
     @State private var score: Int = 0
     @State private var gameFinished: Bool = false
+    private var totalTime: Int
+    @Environment(\.dismiss) private var dismiss
 
     func startTimer() {
         timer?.invalidate()
@@ -84,89 +87,105 @@ struct MemoryMatchView: View {
         case 4: self._timeLeft = State(initialValue: 15)
         default: self._timeLeft = State(initialValue: 10)
         }
+        switch numberOfPairs {
+        case 2: self.totalTime = 10
+        case 3: self.totalTime = 15
+        case 4: self.totalTime = 15
+        default: self.totalTime = 10
+        }
     }
 
     var body: some View {
         ZStack {
-            LinearGradient(gradient: Gradient(colors: [Color.green.opacity(0.15), Color.teal.opacity(0.10), Color.green.opacity(0.08)]), startPoint: .topLeading, endPoint: .bottomTrailing)
+            Image("memory-match-background")
+                .resizable()
+                .scaledToFill()
                 .ignoresSafeArea()
-            VStack(spacing: 24) {
-                // Header
-                VStack(spacing: 6) {
-                    Text("Memory Match")
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
-                        .foregroundColor(.green)
-                        .shadow(color: .green.opacity(0.10), radius: 4, x: 0, y: 2)
-                    HStack(spacing: 16) {
-                        Label("Time", systemImage: "clock.fill")
-                            .font(.title3)
-                            .foregroundColor(.teal)
-                        Text("\(timeLeft)s")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.primary)
-                        Label("Score", systemImage: "star.fill")
-                            .font(.title3)
-                            .foregroundColor(.teal)
-                        Text("\(score)")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.primary)
-                    }
-                }
-                // Card grid in a card-like container
-                ZStack {
-                    RoundedRectangle(cornerRadius: 24)
-                        .fill(Color.white.opacity(0.92))
-                        .shadow(color: .green.opacity(0.10), radius: 10, x: 0, y: 4)
-                    LazyVGrid(columns: columns, spacing: 18) {
-                        ForEach(cards.indices, id: \ .self) { index in
-                            CardView(card: cards[index])
-                                .onTapGesture {
-                                    flipCard(at: index)
-                                }
-                                .disabled(cards[index].isFaceUp || cards[index].isMatched || isProcessing || gameFinished || timeLeft == 0)
+                .blur(radius: 16)
+            VStack(spacing: 0) {
+                HStack(alignment: .center, spacing: 0) {
+                    Button(action: { dismiss() }) {
+                        HStack(alignment: .center, spacing: 0) {
+                            Image(systemName: "chevron.left")
+                                .foregroundColor(.white)
                         }
+                        .padding(0)
+                        .frame(width: 34, height: 34, alignment: .center)
+                        .background(Color.white.opacity(0.15))
+                        .cornerRadius(500)
                     }
-                    .padding(24)
+                    if !gameFinished {
+                        GeometryReader { geometry in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color.white.opacity(0.25))
+                                    .frame(height: 8)
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(LinearGradient(gradient: Gradient(colors: [Color.green, Color.teal]), startPoint: .leading, endPoint: .trailing))
+                                    .frame(width: max(geometry.size.width * CGFloat(timeLeft) / CGFloat(totalTime), 0.0), height: 8)
+                                    .animation(.easeInOut(duration: 1.0), value: timeLeft)
+                            }
+                        }
+                        .frame(height: 8)
+                        .padding(.leading, 12)
+                        .padding(.trailing, 8)
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        Spacer()
+                    }
                 }
-                .frame(maxWidth: 420, maxHeight: 520)
-                .padding(.horizontal)
-                if gameFinished {
-                    Text("You matched all the pairs! 🎉")
-                        .font(.title2)
-                        .foregroundColor(.green)
-                        .padding(.top, 8)
-                }
-                if timeLeft == 0 && !gameFinished {
-                    Text("⏰ Time's up! Try again!")
-                        .font(.title2)
-                        .foregroundColor(.red)
-                        .padding(.top, 8)
-                }
-                if gameFinished || (timeLeft == 0 && !gameFinished) {
-                    Button(action: { onRestart?() }) {
-                        Text("Restart Game!")
-                            .font(.headline)
+                .padding(.leading, 8)
+                .padding(.top, 60)
+                .padding(.trailing, 16)
+                .padding(.bottom, 24)
+                Spacer().frame(height: 33)
+                if !gameFinished {
+                    HStack {
+                        Spacer()
+                        Text("\(score)")
+                            .font(.system(size: 36, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
-                            .padding(.horizontal, 32)
-                            .padding(.vertical, 14)
-                            .background(LinearGradient(gradient: Gradient(colors: [Color.green, Color.teal]), startPoint: .leading, endPoint: .trailing))
-                            .cornerRadius(14)
-                            .shadow(radius: 4)
+                            .shadow(color: .black.opacity(0.18), radius: 4, x: 0, y: 2)
+                        Spacer()
                     }
-                    .padding(.top, 4)
+                    .padding(.bottom, 8)
+                }
+                if !gameFinished {
+                    ZStack {
+                        LazyVGrid(columns: columns, spacing: 16) {
+                            ForEach(cards) { card in
+                                MemoryGameCard(card: card)
+                                    .onTapGesture {
+                                        if let idx = cards.firstIndex(where: { $0.id == card.id }) {
+                                            flipCard(at: idx)
+                                        }
+                                    }
+                                    .disabled(card.isFaceUp || card.isMatched || isProcessing || gameFinished || timeLeft == 0)
+                            }
+                        }
+                        .padding(.horizontal, 4)
+                    }
+                    .frame(maxWidth: 420, maxHeight: 520)
+                    .padding(.top, 12)
+                    .padding(.bottom, 56) 
+                    .padding(.horizontal, 0)
+                }
+                if gameFinished {
+                    ConfettiOverlay(score: score, onRestart: onRestart)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            .padding(.vertical, 16)
+            .padding(.vertical, 0)
+            // Hide confetti overlay when game is finished 
         }
         .background(Color.white.opacity(0.7))
         .onAppear {
             startTimer()
+            UITabBar.appearance().unselectedItemTintColor = UIColor.white
         }
         .onDisappear {
             stopTimer()
+            UITabBar.appearance().unselectedItemTintColor = nil
         }
         .onChange(of: gameFinished) {
             if gameFinished {
@@ -181,28 +200,108 @@ struct MemoryMatchView: View {
     }
 }
 
-struct CardView: View {
+struct MemoryGameCard: View {
     let card: Card
     var body: some View {
         ZStack {
             if card.isFaceUp || card.isMatched {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
-                    .shadow(radius: 6)
+                // Show emoji on a yellow-themed background
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(LinearGradient(gradient: Gradient(colors: [Color.yellow.opacity(0.92), Color.orange.opacity(0.85)]), startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .shadow(radius: 8)
+                // Dashed border
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(style: StrokeStyle(lineWidth: 2, dash: [7]))
+                    .foregroundColor(Color.black.opacity(0.3))
+                    .padding(6)
                 Text(card.content)
-                    .font(.system(size: 44))
+                    .font(.system(size: 54))
             } else {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(LinearGradient(gradient: Gradient(colors: [Color.green, Color.teal]), startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .shadow(radius: 6)
+                // Show the card background image when face down
+                Image("cardsbackground")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 180, height: 140)
+                    .cornerRadius(20)
+                    .clipped()
+                    .shadow(radius: 8)
+                // Dashed border
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(style: StrokeStyle(lineWidth: 2, dash: [7]))
+                    .foregroundColor(Color.black.opacity(0.3))
+                    .padding(6)
             }
         }
-        .frame(height: 100)
+        .frame(width: 180, height: 140)
         .rotation3DEffect(
             .degrees(card.isFaceUp || card.isMatched ? 0 : 180),
             axis: (x: 0, y: 1, z: 0)
         )
         .animation(.easeInOut, value: card.isFaceUp)
+    }
+}
+
+// Confetti overlay done for Memory game (can be used as a component if needed, waiting for the other games design)
+struct ConfettiOverlay: View {
+    let score: Int
+    var onRestart: (() -> Void)?
+    @State private var animate = false
+    let confettiColors: [Color] = [.red, .yellow, .blue, .green, .purple, .orange, .pink]
+    var body: some View {
+        ZStack {
+            GeometryReader { geo in
+                ForEach(0..<30, id: \ .self) { i in
+                    Circle()
+                        .fill(confettiColors.randomElement() ?? .blue)
+                        .frame(width: CGFloat.random(in: 8...18), height: CGFloat.random(in: 8...18))
+                        .position(x: CGFloat.random(in: 0...geo.size.width), y: animate ? geo.size.height + 40 : CGFloat.random(in: 0...geo.size.height/2))
+                        .opacity(0.7)
+                        .animation(
+                            .easeIn(duration: Double.random(in: 1.2...2.2)).repeatForever(autoreverses: false),
+                            value: animate
+                        )
+                }
+            }
+            .allowsHitTesting(false)
+            VStack(spacing: 24) {
+                Spacer()
+                // Smiley face icon
+                Image(systemName: "face.smiling")
+                    .font(.system(size: 48))
+                    .foregroundColor(.white)
+                // Congratulatory message
+                Text("Good job matching\nall the pairs!")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.white)
+                // Score label and value
+                VStack(spacing: 2) {
+                    Text("Your Score")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    Text("\(score)")
+                        .font(.system(size: 44, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                }
+                // Large white button with black text
+                Spacer()
+                Button(action: { onRestart?() }) {
+                    Text("Try again")
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(Color.white)
+                        .cornerRadius(16)
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 140) // Raise the button even higher above the tab bar
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .ignoresSafeArea()
+        .onAppear { animate = true }
     }
 }
 

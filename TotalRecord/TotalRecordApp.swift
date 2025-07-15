@@ -6,9 +6,13 @@
 //
 
 import SwiftUI
+import UIKit
 
 @main
 struct TotalRecordApp: App {
+    init() {
+        UITabBar.appearance().unselectedItemTintColor = UIColor.white
+    }
     var body: some Scene {
         WindowGroup {
             ContentView()
