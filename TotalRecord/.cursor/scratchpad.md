@@ -105,13 +105,15 @@
     - Track card positions and user taps.
     - **Exercise:** Build a grid where tapping a cell reveals its content.
 
-- [ ] Task 6: Implement Speed Match game mode
-  - ✅ Success Criteria: User matches patterns quickly under a timer.
+- [x] Task 6: Implement Speed Match game mode
+  - ✅ Success Criteria: User matches patterns quickly under a timer. Game is playable with setup screen, uses emoji cards, and provides feedback and scoring.
   - 🎯 Learning Goal: Handle fast-paced input and real-time feedback.
   - 📘 Educator Notes:
-    - Use timers and state to manage fast rounds.
-    - Provide immediate feedback on correct/incorrect matches.
-    - **Exercise:** Create a button that must be tapped within a time limit.
+    - Used timers and state to manage fast rounds.
+    - Provided immediate feedback on correct/incorrect matches.
+    - Used GameCards for card display and consistent UI.
+    - Setup screen allows configuration of rounds and time per card.
+    - **Lesson:** Copying the GameCards struct locally is a quick fix if module imports are not set up; for larger projects, consider a shared module for reusable components.
 
 - [ ] Task 7: Build Memory Palace creation and editing UI
   - ✅ Success Criteria: User can create, name, and edit palaces with rooms/locations.
@@ -159,7 +161,7 @@
 - [x] Task 3: Add scoring, timer, and difficulty to Memory Match
 - [x] Task 4: Implement Sequence Recall game mode
 - [x] Task 5: Implement Card Locator game mode
-- [ ] Task 6: Implement Speed Match game mode
+- [x] Task 6: Implement Speed Match game mode
 - [ ] Task 7: Build Memory Palace creation and editing UI
 - [ ] Task 8: Implement card-location assignment and recall
 - [ ] Task 9: Add local persistence for scores, palaces, assignments
