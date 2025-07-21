@@ -209,6 +209,20 @@
 ## Executor's Feedback or Assistance Requests
 > Removed Games/AppButton.swift. Only Components/AppButton.swift remains. This should resolve the duplicate build output error.
 
+---
+### Standup Summary (Today)
+
+**What I got blocked on:**
+- UI/UX and visual design. I found it challenging to make the game look polished and visually appealing. Design is not one of my strengths, and I spent extra time trying to get the layout and feedback to feel right.
+
+**What I achieved:**
+- Implemented the Speed Match game logic and setup screen. The game is now playable and the logic works for most cases, with quick feedback and scoring. The core mechanics are in place and nearly working as intended.
+
+**What I learned:**
+- What a standup message is: a brief daily summary of blockers, achievements, and learnings.
+- How to use comparators to quickly react to new state changes in SwiftUI (e.g., comparing current and previous card for fast feedback).
+- That design and UI polish are areas for growth, and it’s okay to ask for help or use templates for better results.
+
 ## Lessons
 > Task 1: Learned how to use TabView for bottom navigation, how to structure a SwiftUI app with separate views for each section, and how to use NavigationStack for in-tab navigation. Practiced writing beginner-friendly, well-commented code and compared two approaches for clarity and expandability.
 
