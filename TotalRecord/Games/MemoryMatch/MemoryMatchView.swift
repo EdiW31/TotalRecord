@@ -36,12 +36,12 @@ struct MemoryMatchView: View {
     }
 
     func stopTimer() {
-        timer?.invalidate()
+        timer?.invalidate() //.invalidate() face ca orice alt timer sa fie oprit
         timer = nil
     }
 
     func flipCard(at index: Int) {
-        guard !cards[index].isFaceUp, !cards[index].isMatched, !isProcessing, !gameFinished, timeLeft > 0 else { return }
+        guard !cards[index].isFaceUp, !cards[index].isMatched, !isProcessing, !gameFinished, timeLeft > 0 else { return } // un guard pentru a nu se genera elementul cand nu trebuie
         if let firstIndex = indexOfFaceUpCard {
             cards[index].isFaceUp = true
             isProcessing = true
@@ -52,7 +52,10 @@ struct MemoryMatchView: View {
                 isProcessing = false
                 self.score += 10
                 if cards.allSatisfy({ $0.isMatched }) {
-                    gameFinished = true
+                    // Add a short delay before showing the winning screen
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        gameFinished = true
+                    }
                 }
             } else {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
@@ -97,6 +100,7 @@ struct MemoryMatchView: View {
 
     var body: some View {
         ZStack {
+            // Background image fills the entire screen, edge-to-edge
             Image("memory-match-background")
                 .resizable()
                 .scaledToFill()
@@ -150,8 +154,8 @@ struct MemoryMatchView: View {
                     }
                     .padding(.bottom, 8)
                 }
-                if !gameFinished {
-                    ZStack {
+                ZStack {
+                    if !gameFinished {
                         LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(cards) { card in
                                 MemoryGameCard(card: card)
@@ -164,21 +168,27 @@ struct MemoryMatchView: View {
                             }
                         }
                         .padding(.horizontal, 4)
+                        .frame(maxWidth: 420, maxHeight: 520)
+                        .padding(.top, 12)
+                        .padding(.bottom, 56)
+                        .padding(.horizontal, 0)
+                        .transition(.opacity)
                     }
-                    .frame(maxWidth: 420, maxHeight: 520)
-                    .padding(.top, 12)
-                    .padding(.bottom, 56) 
-                    .padding(.horizontal, 0)
                 }
-                if gameFinished {
-                    ConfettiOverlay(score: score, onRestart: onRestart)
-                }
+                .animation(.easeInOut(duration: 0.5), value: gameFinished)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            .padding(.vertical, 0)
-            // Hide confetti overlay when game is finished 
+            // Overlays: these are now at the root ZStack level, above all content
+            if gameFinished {
+                ConfettiOverlay(score: score, onRestart: onRestart)
+                    .transition(.opacity.combined(with: .scale))
+            }
+            if timeLeft == 0 && !gameFinished {
+                GameLostView(score: score, onRestart: onRestart)
+                    .transition(.opacity.combined(with: .scale))
+            }
         }
-        .background(Color.white.opacity(0.7))
+        .background(Color.clear) // Ensure no default background is rendered
         .onAppear {
             startTimer()
             UITabBar.appearance().unselectedItemTintColor = UIColor.white
@@ -197,6 +207,7 @@ struct MemoryMatchView: View {
                 stopTimer()
             }
         }
+        .animation(.easeInOut(duration: 0.5), value: gameFinished || timeLeft == 0)
     }
 }
 
@@ -305,3 +316,53 @@ struct ConfettiOverlay: View {
     }
 }
 
+struct GameLostView: View {
+    let score: Int
+    var onRestart: (() -> Void)?
+    var body: some View {
+        ZStack(alignment: .center) {
+            // Fully fullscreen black transparent background
+            Color.black.opacity(0.78).ignoresSafeArea()
+            VStack(spacing: 32) {
+                Spacer()
+                Image(systemName: "hourglass")
+                    .font(.system(size: 70, weight: .bold))
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
+                Text("Time's up!")
+                    .font(.system(size: 40, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
+                Text("Your Score")
+                    .font(.title2)
+                    .foregroundColor(.white.opacity(0.85))
+                Text("\(score)")
+                    .font(.system(size: 54, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                Button(action: { onRestart?() }) {
+                    Text("Try Again")
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 48)
+                        .padding(.vertical, 18)
+                        .background(Color.white)
+                        .cornerRadius(18)
+                        .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 4)
+                }
+                .padding(.top, 12)
+                Spacer()
+            }
+            .multilineTextAlignment(.center)
+        }
+    }
+}
+
+// Add VisualEffectBlur for glassmorphism
+import SwiftUI
+import UIKit
+struct VisualEffectBlur: UIViewRepresentable {
+    var blurStyle: UIBlurEffect.Style
+    func makeUIView(context: Context) -> UIVisualEffectView {
+        return UIVisualEffectView(effect: UIBlurEffect(style: blurStyle))
+    }
+    func updateUIView(_ uiView: UIVisualEffectView, context: Context) {}
+}

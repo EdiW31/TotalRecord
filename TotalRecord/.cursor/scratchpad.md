@@ -105,13 +105,15 @@
     - Track card positions and user taps.
     - **Exercise:** Build a grid where tapping a cell reveals its content.
 
-- [ ] Task 6: Implement Speed Match game mode
-  - ✅ Success Criteria: User matches patterns quickly under a timer.
+- [x] Task 6: Implement Speed Match game mode
+  - ✅ Success Criteria: User matches patterns quickly under a timer. Game is playable with setup screen, uses emoji cards, and provides feedback and scoring.
   - 🎯 Learning Goal: Handle fast-paced input and real-time feedback.
   - 📘 Educator Notes:
-    - Use timers and state to manage fast rounds.
-    - Provide immediate feedback on correct/incorrect matches.
-    - **Exercise:** Create a button that must be tapped within a time limit.
+    - Used timers and state to manage fast rounds.
+    - Provided immediate feedback on correct/incorrect matches.
+    - Used GameCards for card display and consistent UI.
+    - Setup screen allows configuration of rounds and time per card.
+    - **Lesson:** Copying the GameCards struct locally is a quick fix if module imports are not set up; for larger projects, consider a shared module for reusable components.
 
 - [ ] Task 7: Build Memory Palace creation and editing UI
   - ✅ Success Criteria: User can create, name, and edit palaces with rooms/locations.
@@ -159,7 +161,7 @@
 - [x] Task 3: Add scoring, timer, and difficulty to Memory Match
 - [x] Task 4: Implement Sequence Recall game mode
 - [x] Task 5: Implement Card Locator game mode
-- [ ] Task 6: Implement Speed Match game mode
+- [x] Task 6: Implement Speed Match game mode
 - [ ] Task 7: Build Memory Palace creation and editing UI
 - [ ] Task 8: Implement card-location assignment and recall
 - [ ] Task 9: Add local persistence for scores, palaces, assignments
@@ -206,6 +208,20 @@
 
 ## Executor's Feedback or Assistance Requests
 > Removed Games/AppButton.swift. Only Components/AppButton.swift remains. This should resolve the duplicate build output error.
+
+---
+### Standup Summary (Today)
+
+**What I got blocked on:**
+- UI/UX and visual design. I found it challenging to make the game look polished and visually appealing. Design is not one of my strengths, and I spent extra time trying to get the layout and feedback to feel right.
+
+**What I achieved:**
+- Implemented the Speed Match game logic and setup screen. The game is now playable and the logic works for most cases, with quick feedback and scoring. The core mechanics are in place and nearly working as intended.
+
+**What I learned:**
+- What a standup message is: a brief daily summary of blockers, achievements, and learnings.
+- How to use comparators to quickly react to new state changes in SwiftUI (e.g., comparing current and previous card for fast feedback).
+- That design and UI polish are areas for growth, and it’s okay to ask for help or use templates for better results.
 
 ## Lessons
 > Task 1: Learned how to use TabView for bottom navigation, how to structure a SwiftUI app with separate views for each section, and how to use NavigationStack for in-tab navigation. Practiced writing beginner-friendly, well-commented code and compared two approaches for clarity and expandability.

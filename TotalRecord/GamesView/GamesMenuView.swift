@@ -54,7 +54,7 @@ struct GamesMenuView: View {
                 case "CardLocator":
                     CardLocatorSetupView().navigationBarBackButtonHidden(true)
                 case "SpeedMatch":
-                    MemoryMatchSetupView().navigationBarBackButtonHidden(true) // TODO: Replace with SpeedMatchSetupView if exists
+                    SpeedMatchSetupView().navigationBarBackButtonHidden(true) // TODO: Replace with SpeedMatchSetupView if exists
                 default:
                     EmptyView()
                 }
