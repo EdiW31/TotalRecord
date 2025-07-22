@@ -54,7 +54,7 @@ struct MemoryMatchView: View {
                 if cards.allSatisfy({ $0.isMatched }) {
                     // Add a short delay before showing the winning screen
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        gameFinished = true
+                    gameFinished = true
                     }
                 }
             } else {
@@ -155,7 +155,7 @@ struct MemoryMatchView: View {
                     .padding(.bottom, 8)
                 }
                 ZStack {
-                    if !gameFinished {
+                if !gameFinished {
                         LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(cards) { card in
                                 MemoryGameCard(card: card)
@@ -168,12 +168,12 @@ struct MemoryMatchView: View {
                             }
                         }
                         .padding(.horizontal, 4)
-                        .frame(maxWidth: 420, maxHeight: 520)
-                        .padding(.top, 12)
-                        .padding(.bottom, 56)
-                        .padding(.horizontal, 0)
+                    .frame(maxWidth: 420, maxHeight: 520)
+                    .padding(.top, 12)
+                    .padding(.bottom, 56) 
+                    .padding(.horizontal, 0)
                         .transition(.opacity)
-                    }
+                }
                 }
                 .animation(.easeInOut(duration: 0.5), value: gameFinished)
             }
