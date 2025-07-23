@@ -115,7 +115,7 @@
     - Setup screen allows configuration of rounds and time per card.
     - **Lesson:** Copying the GameCards struct locally is a quick fix if module imports are not set up; for larger projects, consider a shared module for reusable components.
 
-- [ ] Task 7: Build Memory Palace creation and editing UI
+- [x] Task 7: Build Memory Palace creation and editing UI
   - ✅ Success Criteria: User can create, name, and edit palaces with rooms/locations.
   - 🎯 Learning Goal: Model hierarchical data and build forms in SwiftUI.
   - 📘 Educator Notes:
