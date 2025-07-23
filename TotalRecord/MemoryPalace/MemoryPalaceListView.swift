@@ -3,6 +3,7 @@ import SwiftUI
 // (No explicit import needed if files are in the same target)
 
 struct MemoryPalaceListView: View {
+    // random mai mult pentru test sa vad ca merge, no database :/
     @State private var palaces: [Palace] = [
         Palace(name: "The Grand Library", description: "A vast library with endless shelves, perfect for storing facts and stories."),
         Palace(name: "Sunny Beach House", description: "A bright, airy house by the sea, ideal for visualizing lists and sequences."),
@@ -38,9 +39,12 @@ struct MemoryPalaceListView: View {
                     // List of Palaces
                     ScrollView {
                         VStack(spacing: 18) {
-                            ForEach(palaces) { palace in
-                                NavigationLink(destination: PalacesRoomsView(palace: palace)) {
-                                    PalaceCard(palace: palace)
+                            ForEach(Array(palaces.enumerated()), id: \.element.id) { index, palace in
+                                NavigationLink(destination: PalacesRoomsView(palace: $palaces[index])) {
+                                    PalaceCard(palace: palace) {
+                                        // ma folosesc direct de remove la lista ca sa mearga asta, se apeleaza cand se apeleaza onDelete din Palace Card
+                                        palaces.remove(at: index) // O(1) delete
+                                    }
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }
@@ -64,6 +68,8 @@ struct MemoryPalaceListView: View {
 
 struct PalaceCard: View {
     let palace: Palace
+    var onDelete: () -> Void
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
@@ -73,7 +79,17 @@ struct PalaceCard: View {
                 Spacer()
                 Image(systemName: "building.columns")
                     .foregroundColor(.purple)
+                
+                //buton de delete a palatului
+                Button(action:{
+                    onDelete()
+                }){
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
+
             if !palace.description.isEmpty {
                 Text(palace.description)
                     .font(.body)

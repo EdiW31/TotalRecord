@@ -63,7 +63,7 @@ struct RoomFormView: View {
             }
             .disabled(room.name.isEmpty)
         }
-        .navigationTitle(room.id == UUID() ? "New Room" : "Edit Room")
+        .navigationTitle(room.name.isEmpty ? "New Room" : "Edit Room")
     }
 }
 
