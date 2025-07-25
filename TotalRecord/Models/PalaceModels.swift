@@ -44,7 +44,7 @@ struct PalaceFormView: View {
             }
             .disabled(palace.name.isEmpty)
         }
-        .navigationTitle(palace.id == UUID() ? "New Palace" : "Edit Palace")
+        .navigationTitle(palace.isNew ? "New Palace" : "Edit Palace")
     }
 }
 
