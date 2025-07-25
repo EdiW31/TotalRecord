@@ -12,9 +12,7 @@ struct MemoryPalaceListView: View {
     ]
     @State private var showCreateSheet = false
 
-    func addPalace(){
-        
-    }
+// Removed the unused and empty addPalace() function.
 
     var body: some View {
         NavigationStack {
