@@ -20,6 +20,7 @@ struct Room: Identifiable, Codable {
     let id: UUID
     var name: String
     var description: String
+    var assignedCard: String?
 
     init(id: UUID = UUID(), name: String, description: String = "") {
         self.id = id
