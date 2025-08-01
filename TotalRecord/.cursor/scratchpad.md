@@ -1,5 +1,5 @@
 ## Background and Motivation
-> TotalRecard is an iOS app designed to help users improve memory through card-based games and the memory palace technique. The goal is to make memory training fun, challenging, and educational, while also deepening understanding of SwiftUI, game logic, and data persistence.
+> TotalRecord is an iOS app that transforms memory training into a personalized journey. Users create 5 unique memory palaces with custom themes and difficulties, unlocking new palaces by achieving best times in card-based games. Features include automatic achievements, custom goals, and detailed progress tracking, making memory improvement both challenging and rewarding.
 
 ## Key Challenges and Analysis
 > - Designing flexible, scalable game logic for multiple game types
@@ -123,37 +123,74 @@
     - Use `Form` and `List` for input and editing.
     - **Exercise:** Make a form to add/edit items in a list.
 
-- [ ] Task 8: Implement card-location assignment and recall in palaces
-  - ✅ Success Criteria: User can assign cards to locations and later recall them.
-  - 🎯 Learning Goal: Build association logic and recall UI.
-  - 📘 Educator Notes:
-    - Use dictionaries or arrays for associations.
-    - Design recall screens to test memory.
-    - **Exercise:** Map items to locations and display them.
+- [ ] Task 8: First-Time User Experience & Palace Creation
+    ✅ Success Criteria: Users must create 5 personalized palaces on first launch with custom names, difficulties, and colors.
+    🎯 Learning Goal: Build multi-step onboarding flows and user personalization.
 
-- [ ] Task 9: Add local persistence for scores, palaces, and assignments
-  - ✅ Success Criteria: All user data persists between app launches.
-  - 🎯 Learning Goal: Use SwiftData or UserDefaults for persistence.
-  - 📘 Educator Notes:
-    - Compare `UserDefaults`, `SwiftData`, and `CoreData`.
-    - Save/load simple models.
-    - **Exercise:** Store and retrieve a value using UserDefaults.
+    📘 Educator Notes:
+        Use @AppStorage to detect first-time setup.
+        Implement step-by-step palace creation with TabView.
+        Validate user input and prevent duplicate names.
+        Exercise: Create a multi-step form with progress indicators.
+    🧑‍🏫 Implementation Plan:
+        Task 8.1: First-Time Setup Detection (30 min)
+        Task 8.2: Palace Creation Flow UI (60 min)
+        Task 8.3: Palace Difficulty System (45 min)
 
-- [ ] Task 10: Polish UI with animations, accessibility, and responsive layouts
-  - ✅ Success Criteria: App looks good on all devices, is accessible, and uses smooth animations.
-  - 🎯 Learning Goal: Apply animation and accessibility best practices.
-  - 📘 Educator Notes:
-    - Use `.animation`, `.transition`, and `.accessibilityLabel`.
-    - Test with different device previews.
-    - **Exercise:** Animate a view's appearance/disappearance.
+- [ ] Task 9: Palace Theme System
+    ✅ Success Criteria: Each palace has unique visual theme that affects all games and can be switched via unlock button.
+    🎯 Learning Goal: Create dynamic color schemes and global theme management.
 
-- [ ] Task 11: Add tests for scoring, timing, and sequence validation logic
-  - ✅ Success Criteria: Key logic is covered by unit tests.
-  - 🎯 Learning Goal: Write and run tests in Xcode.
-  - 📘 Educator Notes:
-    - Use `XCTest` for unit testing.
-    - Test pure functions and logic.
-    - **Exercise:** Write a test for a function that adds two numbers.
+    📘 Educator Notes:
+        Use @StateObject for global theme management.
+        Generate complementary colors from user's choice.
+        Apply themes consistently across all UI elements.
+    🧑‍🏫 Implementation Plan:
+        Task 9.1: Dynamic Theme Generation (45 min)
+        Task 9.2: Theme Integration in Games (60 min)
+        Task 9.3: Palace Unlock System (30 min)
+
+- [ ] Task 10: Automatic Achievement System
+    ✅ Success Criteria: Achievements are automatically created per palace, including custom user-created achievements for current palace only
+    🎯 Learning Goal: Design achievement systems and progress tracking.
+
+    📘 Educator Notes:
+        Store achievements with palace association.
+        Allow users to create personal goals.
+        Validate custom achievement requirements.
+    🧑‍🏫 Implementation Plan:
+        Task 10.1: Achievement Model & Tracking (45 min)
+        Task 10.2: Achievement UI & Notifications (45 min)
+        Task 10.3: Custom Achievement Creation (45 min)
+        Task 10.4: Palace Unlock System Based on Best Times (60 min)
+        Task 10.5: Unlock Progress UI (45 min)
+
+- [ ] Task 11: Palace Progress & Persistence
+    ✅ Success Criteria: All palace data, progress, and achievements persist between app launches with detailed tracking.
+    🎯 Learning Goal: Implement comprehensive data persistence and progress visualization.
+    
+    📘 Educator Notes:
+        Use UserDefaults for simple data, SwiftData for complex relationships.
+        Track statistics for each game type.
+        Calculate averages and trends.
+    🧑‍🏫 Implementation Plan:
+        Task 11.1: Progress Tracking System (45 min)
+        Task 11.2: Progress Visualization (45 min)
+        Task 11.3: Data Persistence (30 min)
+
+- [ ] Task 12: Integration & Polish
+    ✅ Success Criteria: Complete palace system integrated with all games, smooth UX, and polished animations.
+    🎯 Learning Goal: Integrate complex systems and polish user experience.
+    
+    📘 Educator Notes:
+        Update all game setup screens.
+        Apply palace themes to game UI.
+        Use palace-specific game settings.
+    🧑‍🏫 Implementation Plan:
+        Task 12.1: Game Integration (60 min)
+        Task 12.2: Navigation & Flow (30 min)
+        Task 12.3: Final Polish & Testing (45 min)
+
 
 ## Project Status Board
 - [x] Task 1: Set up SwiftUI project structure and navigation
@@ -162,71 +199,11 @@
 - [x] Task 4: Implement Sequence Recall game mode
 - [x] Task 5: Implement Card Locator game mode
 - [x] Task 6: Implement Speed Match game mode
-- [ ] Task 7: Build Memory Palace creation and editing UI
-- [ ] Task 8: Implement card-location assignment and recall
-- [ ] Task 9: Add local persistence for scores, palaces, assignments
-- [ ] Task 10: Polish UI with animations and accessibility
-- [ ] Task 11: Add tests for scoring, timing, sequence validation
-- [x] Remove duplicate AppButton.swift from Games directory to resolve Xcode build error
+- [X] Task 7: Build Memory Palace creation and editing UI
+- [ ] Task 8: First-Time User Experience & Palace Creation
+- [ ] Task 9: Palace Theme System
+- [ ] Task 10: Automatic Achievement System
+- [ ] Task 11: Palace Progress & Persistence
+- [ ] Task 12: Integration & Polish
 
----
-
-### 🧑‍🏫 Educator: Card Locator Game - What You Learned and Used
-
-**1. GeometryReader for Responsive Layouts**
-- Used `GeometryReader` to dynamically size the card grid so it fits any device and grid size.
-- Calculated card width/height based on available space, ensuring a non-scrollable, visually balanced grid.
-
-**2. SwiftUI State Management**
-- Managed game state with `@State` variables for target cards, revealed cards, feedback, memorization phase, and timers.
-- Used arrays to track which cards are targets, which are revealed, and to provide immediate feedback.
-
-**3. Grid Layouts with LazyVGrid**
-- Built the card grid using `LazyVGrid` for efficient, flexible layouts.
-- Nested `ForEach` loops and index math to map grid positions to emoji cards.
-
-**4. User Feedback and Game Flow**
-- Highlighted target cards during the memorization phase with a distinct color (pink), and used purple/blue for non-targets.
-- Provided immediate feedback on taps: green for correct, red for incorrect.
-- Used timers to control the memorization and waiting phases, and to manage game flow.
-
-**5. Theming and Visual Design**
-- Applied a consistent blue/purple theme using gradients and color logic.
-- Used rounded rectangles, shadows, and padding for a modern, professional look.
-- Ensured the UI is visually clear, inviting, and easy to use.
-
-**6. SwiftUI Best Practices**
-- Kept logic and UI separate, using clear state and view updates.
-- Used `.disabled()` to prevent unwanted taps during animations or phases.
-- Used `.animation` and transitions for smooth UI updates.
-
-**Learning Outcomes:**
-- You practiced advanced SwiftUI layout with GeometryReader and grid math.
-- You learned to manage complex game state and user feedback.
-- You built a visually appealing, responsive, and user-friendly memory game from scratch.
-- You reinforced best practices for state, layout, and user experience in SwiftUI.
-
-## Executor's Feedback or Assistance Requests
-> Removed Games/AppButton.swift. Only Components/AppButton.swift remains. This should resolve the duplicate build output error.
-
----
-### Standup Summary (Today)
-
-**What I got blocked on:**
-- UI/UX and visual design. I found it challenging to make the game look polished and visually appealing. Design is not one of my strengths, and I spent extra time trying to get the layout and feedback to feel right.
-
-**What I achieved:**
-- Implemented the Speed Match game logic and setup screen. The game is now playable and the logic works for most cases, with quick feedback and scoring. The core mechanics are in place and nearly working as intended.
-
-**What I learned:**
-- What a standup message is: a brief daily summary of blockers, achievements, and learnings.
-- How to use comparators to quickly react to new state changes in SwiftUI (e.g., comparing current and previous card for fast feedback).
-- That design and UI polish are areas for growth, and it’s okay to ask for help or use templates for better results.
-
-## Lessons
-> Task 1: Learned how to use TabView for bottom navigation, how to structure a SwiftUI app with separate views for each section, and how to use NavigationStack for in-tab navigation. Practiced writing beginner-friendly, well-commented code and compared two approaches for clarity and expandability.
-
-## Lessons
-> Avoid having duplicate SwiftUI component files in multiple directories, as this can cause Xcode build errors about multiple commands producing the same output.
-
-> (To be filled during execution: bugs, fixes, reusable patterns, and key insights.) 
+## End
