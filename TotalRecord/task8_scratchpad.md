@@ -13,16 +13,16 @@
 ## 🧑‍🏫 **Mini Tasks Breakdown**
 
 ### **Phase 1: Setup Detection (30 min)**
-- [ ] **Task 8.1.1**: Add `@AppStorage("hasCompletedFirstTimeSetup")` to ContentView
-- [ ] **Task 8.1.2**: Modify splash screen logic to check setup status
-- [ ] **Task 8.1.3**: Add state variables for welcome flow and palace creation
-- [ ] **Task 8.1.4**: Test splash → welcome flow transition
+- [x] **Task 8.1.1**: Add `@AppStorage("hasCompletedFirstTimeSetup")` to ContentView
+- [x] **Task 8.1.2**: Modify splash screen logic to check setup status
+- [x] **Task 8.1.3**: Add state variables for welcome flow and palace creation
+- [x] **Task 8.1.4**: Test splash → welcome flow transition
 
 ### **Phase 2: Welcome Introduction (45 min)**
-- [ ] **Task 8.2.1**: Create `WelcomeIntroductionView.swift` file
-- [ ] **Task 8.2.2**: Add 4 introduction steps with titles, descriptions, and icons
-- [ ] **Task 8.2.3**: Implement progress indicator with animated dots
-- [ ] **Task 8.2.4**: Add navigation buttons (Previous/Next)
+- [x] **Task 8.2.1**: Create `WelcomeIntroductionView.swift` file
+- [x] **Task 8.2.2**: Add 4 introduction steps with titles, descriptions, and icons
+- [x] **Task 8.2.3**: Implement progress indicator with animated dots
+- [x] **Task 8.2.4**: Add navigation buttons (Previous/Next)
 - [ ] **Task 8.2.5**: Create `IntroductionStep` struct
 - [ ] **Task 8.2.6**: Add button styles (PrimaryButtonStyle, SecondaryButtonStyle)
 - [ ] **Task 8.2.7**: Test navigation between introduction steps

@@ -8,13 +8,24 @@
 import SwiftUI
 
 struct ContentView: View {
+    // MARK: - Task 8.1.1: Add @AppStorage for setup tracking
+    @AppStorage("hasCompletedFirstTimeSetup") private var hasCompletedFirstTimeSetup = false
+    
+    // MARK: - Task 8.1.3: Add state variables for welcome flow and palace creation
     @State private var showSplash = true
+    @State private var showWelcomeFlow = false
+    @State private var showPalaceCreation = false
 
     var body: some View {
         ZStack {
             if showSplash {
                 SplashScreen()
+            } else if !hasCompletedFirstTimeSetup {
+                // MARK: - Task 8.1.2: Modify splash screen logic to check setup status
+                // Show welcome carousel for first-time users
+                WelcomeCarouselView(hasCompletedFirstTimeSetup: $hasCompletedFirstTimeSetup)
             } else {
+                // Show normal app for returning users
                 TabView {
                     HomeView()
                         .tabItem {
@@ -37,14 +48,22 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            hasCompletedFirstTimeSetup = false
+            // MARK: - Task 8.1.4: Test splash → welcome flow transition
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 withAnimation(.easeOut(duration: 0.6)) {
                     showSplash = false
+                    // If first-time user, show welcome flow
+                    if !hasCompletedFirstTimeSetup {
+                        showWelcomeFlow = true
+                    }
                 }
             }
         }
     }
 }
+
+
 
 struct SplashScreen: View {
     @State private var scale: CGFloat = 0.7

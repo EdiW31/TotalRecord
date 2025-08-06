@@ -66,6 +66,7 @@ struct MemoryPalaceListView: View {
 
 struct PalaceCard: View {
     let palace: Palace
+    let palaceStorage: PalaceStorage
     var onDelete: () -> Void
 
     var body: some View {
