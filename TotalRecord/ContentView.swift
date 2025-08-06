@@ -21,9 +21,11 @@ struct ContentView: View {
             if showSplash {
                 SplashScreen()
             } else if !hasCompletedFirstTimeSetup {
-                // MARK: - Task 8.1.2: Modify splash screen logic to check setup status
-                // Show welcome carousel for first-time users
-                WelcomeCarouselView(hasCompletedFirstTimeSetup: $hasCompletedFirstTimeSetup)
+                if showWelcomeFlow {
+                    WelcomeCarouselView(hasCompletedFirstTimeSetup: $hasCompletedFirstTimeSetup)
+                } else {
+                    PalaceCreationFlowView(hasCompletedFirstTimeSetup: $hasCompletedFirstTimeSetup)
+                }
             } else {
                 // Show normal app for returning users
                 TabView {
@@ -43,17 +45,16 @@ struct ContentView: View {
                             Text("Memory Palace")
                         }
                 }
-                .tint(.white) // Ensures all tab bar icons and labels are white
-                .background(.clear) // Optional: makes TabView background transparent
+                .tint(.white) 
+                .background(.clear) 
             }
         }
         .onAppear {
             hasCompletedFirstTimeSetup = false
-            // MARK: - Task 8.1.4: Test splash → welcome flow transition
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 withAnimation(.easeOut(duration: 0.6)) {
                     showSplash = false
-                    // If first-time user, show welcome flow
+                
                     if !hasCompletedFirstTimeSetup {
                         showWelcomeFlow = true
                     }
@@ -170,37 +171,6 @@ struct HomeView: View {
         }
     }
 }
-
-// Helper view for a game card
-// struct GameCard<Content: View>: View {
-//     let imageName: String
-//     let backgroundColor: Color
-//     let content: Content
-//     init(imageName: String, backgroundColor: Color, @ViewBuilder content: () -> Content) {
-//         self.imageName = imageName
-//         self.backgroundColor = backgroundColor
-//         self.content = content()
-//     }
-//     var body: some View {
-//         VStack(spacing: 16) {
-//             Image(imageName)
-//                 .resizable()
-//                 .aspectRatio(contentMode: .fit)
-//                 .frame(height: 220)
-//                 .cornerRadius(16)
-//                 .shadow(radius: 8)
-//                 .padding(.top, 10)
-//             content
-//         }
-//         .padding()
-//         .background(
-//             RoundedRectangle(cornerRadius: 16)
-//                 .fill(backgroundColor)
-//                 .shadow(radius: 4)
-//         )
-//         .padding(.horizontal)
-//     }
-// }
 
 #Preview {
     ContentView()
