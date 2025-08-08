@@ -2,14 +2,14 @@ import SwiftUI
 import Foundation
 
 // MARK: - Data Models
-struct Palace: Identifiable, Codable {
-    let id: UUID
-    var name: String
-    var description: String
-    var color: String  // Store color as String for AppStorage compatibility
-    var rooms: [Room]
+public struct Palace: Identifiable, Codable {
+    public let id: UUID
+    public var name: String
+    public var description: String
+    public var color: String  // Store color as String for AppStorage compatibility
+    public var rooms: [Room]
 
-    init(id: UUID = UUID(), name: String, description: String = "", color: String = "purple", rooms: [Room] = []) {
+    public init(id: UUID = UUID(), name: String, description: String = "", color: String = "purple", rooms: [Room] = []) {
         self.id = id
         self.name = name
         self.description = description
@@ -18,13 +18,13 @@ struct Palace: Identifiable, Codable {
     }
 }
 
-struct Room: Identifiable, Codable {
-    let id: UUID
-    var name: String
-    var description: String
-    var assignedCard: String?
+public struct Room: Identifiable, Codable {
+    public let id: UUID
+    public var name: String
+    public var description: String
+    public var assignedCard: String?
 
-    init(id: UUID = UUID(), name: String, description: String = "") {
+    public init(id: UUID = UUID(), name: String, description: String = "") {
         self.id = id
         self.name = name
         self.description = description
@@ -32,8 +32,8 @@ struct Room: Identifiable, Codable {
 }
 
 // MARK: - Palace Storage Manager
-class PalaceStorage: ObservableObject {
-    @Published var palaces: [Palace] = []
+public class PalaceStorage: ObservableObject {
+    @Published public var palaces: [Palace] = []
     
     // AppStorage keys for each palace
     private func palaceKey(for id: UUID, property: String) -> String {
@@ -41,20 +41,70 @@ class PalaceStorage: ObservableObject {
     }
     
     // Load palaces from AppStorage
-    func loadPalaces() {
-        // For now, load default palaces if none exist
-        if palaces.isEmpty {
-            palaces = [
-                Palace(name: "The Grand Library", description: "A vast library with endless shelves, perfect for storing facts and stories.", color: "purple"),
-                Palace(name: "Sunny Beach House", description: "A bright, airy house by the sea, ideal for visualizing lists and sequences.", color: "blue"),
-                Palace(name: "Mountain Retreat", description: "A peaceful mountain cabin, great for memorizing complex concepts.", color: "green"),
-                Palace(name: "City Art Gallery", description: "A modern gallery with colorful rooms for creative memory journeys.", color: "pink")
-            ]
+    public func loadPalaces() {
+        // Check if user has completed first-time setup
+        let hasCompletedSetup = UserDefaults.standard.bool(forKey: "hasCompletedFirstTimeSetup")
+        
+        if hasCompletedSetup {
+            // User has completed setup, load saved palaces from UserDefaults
+            loadSavedPalaces()
+        } else {
+            // First time setup - load default palaces
+            if palaces.isEmpty {
+                palaces = [
+                    Palace(name: "The Grand Library", description: "A vast library with endless shelves, perfect for storing facts and stories.", color: "purple"),
+                    Palace(name: "Sunny Beach House", description: "A bright, airy house by the sea, ideal for visualizing lists and sequences.", color: "blue"),
+                    Palace(name: "Mountain Retreat", description: "A peaceful mountain cabin, great for memorizing complex concepts.", color: "green"),
+                    Palace(name: "City Art Gallery", description: "A modern gallery with colorful rooms for creative memory journeys.", color: "pink")
+                ]
+            }
+        }
+    }
+    
+    // Load saved palaces from UserDefaults
+    private func loadSavedPalaces() {
+        // Get all UserDefaults keys that start with "palace_"
+        let allKeys = UserDefaults.standard.dictionaryRepresentation().keys
+        let palaceKeys = allKeys.filter { $0.hasPrefix("palace_") }
+        
+        // Group keys by palace ID
+        var palaceData: [String: [String: String]] = [:]
+        
+        for key in palaceKeys {
+            let components = key.components(separatedBy: "_")
+            if components.count >= 3 {
+                let palaceId = components[1]
+                let property = components[2]
+                
+                if palaceData[palaceId] == nil {
+                    palaceData[palaceId] = [:]
+                }
+                
+                if let value = UserDefaults.standard.string(forKey: key) {
+                    palaceData[palaceId]?[property] = value
+                }
+            }
+        }
+        
+        // Create Palace objects from the data
+        palaces = []
+        for (palaceId, properties) in palaceData {
+            if let name = properties["name"],
+               let description = properties["description"],
+               let color = properties["color"],
+               let uuid = UUID(uuidString: palaceId) {
+                
+                let palace = Palace(id: uuid, name: name, description: description, color: color)
+                palaces.append(palace)
+                
+                // Load rooms for this palace
+                loadRooms(for: palace)
+            }
         }
     }
     
     // Save palace to AppStorage
-    func savePalace(_ palace: Palace) {
+    public func savePalace(_ palace: Palace) {
         let nameKey = palaceKey(for: palace.id, property: "name")
         let descriptionKey = palaceKey(for: palace.id, property: "description")
         let colorKey = palaceKey(for: palace.id, property: "color")
@@ -65,7 +115,7 @@ class PalaceStorage: ObservableObject {
     }
     
     // Delete palace from AppStorage
-    func deletePalace(_ palace: Palace) {
+    public func deletePalace(_ palace: Palace) {
         let nameKey = palaceKey(for: palace.id, property: "name")
         let descriptionKey = palaceKey(for: palace.id, property: "description")
         let colorKey = palaceKey(for: palace.id, property: "color")
@@ -76,7 +126,7 @@ class PalaceStorage: ObservableObject {
     }
     
     // Get binding for palace name
-    func palaceNameBinding(for palace: Palace) -> Binding<String> {
+    public func palaceNameBinding(for palace: Palace) -> Binding<String> {
         return Binding(
             get: {
                 let key = self.palaceKey(for: palace.id, property: "name")
@@ -94,7 +144,7 @@ class PalaceStorage: ObservableObject {
     }
     
     // Get binding for palace color
-    func palaceColorBinding(for palace: Palace) -> Binding<String> {
+    public func palaceColorBinding(for palace: Palace) -> Binding<String> {
         return Binding(
             get: {
                 let key = self.palaceKey(for: palace.id, property: "color")
@@ -110,17 +160,37 @@ class PalaceStorage: ObservableObject {
             }
         )
     }
+    
+    // Load rooms for a specific palace
+    public func loadRooms(for palace: Palace) {
+        let roomsKey = palaceKey(for: palace.id, property: "rooms")
+        if let data = UserDefaults.standard.data(forKey: roomsKey),
+           let rooms = try? JSONDecoder().decode([Room].self, from: data) {
+            // Update the palace in the palaces array
+            if let index = palaces.firstIndex(where: { $0.id == palace.id }) {
+                palaces[index].rooms = rooms
+            }
+        }
+    }
+    
+    // Save rooms for a specific palace
+    public func saveRooms(for palace: Palace) {
+        let roomsKey = palaceKey(for: palace.id, property: "rooms")
+        if let data = try? JSONEncoder().encode(palace.rooms) {
+            UserDefaults.standard.set(data, forKey: roomsKey)
+        }
+    }
 }
 
 // MARK: - Form Views
 // Form to create or edit a Palace
-struct PalaceFormView: View {
+public struct PalaceFormView: View {
     @Binding var palace: Palace
     var onSave: (() -> Void)?
     
     let availableColors = ["purple", "blue", "green", "pink", "orange", "red", "yellow", "indigo"]
     
-    var body: some View {
+    public var body: some View {
         Form {
             Section(header: Text("Palace Details")) {
                 TextField("Palace Name", text: $palace.name)
@@ -154,10 +224,10 @@ struct PalaceFormView: View {
 }
 
 // Form to create or edit a Room
-struct RoomFormView: View {
+public struct RoomFormView: View {
     @Binding var room: Room
     var onSave: (() -> Void)?
-    var body: some View {
+    public var body: some View {
         Form {
             Section(header: Text("Room Details")) {
                 TextField("Room Name", text: $room.name)
@@ -173,13 +243,13 @@ struct RoomFormView: View {
 }
 
 // MARK: - Parent View to Choose What to Create
-struct CreateMemoryItemView: View {
+public struct CreateMemoryItemView: View {
     @State private var selection: String? = nil
     @State private var palace = Palace(name: "")
     @State private var room = Room(name: "")
     var onCreatePalace: ((Palace) -> Void)?
     var onCreateRoom: ((Room) -> Void)?
-    var body: some View {
+    public var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
                 Text("What would you like to create?")
@@ -216,4 +286,4 @@ struct CreateMemoryItemView: View {
             .navigationTitle("Create Memory Item")
         }
     }
-}
+} 
