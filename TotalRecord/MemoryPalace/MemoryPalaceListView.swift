@@ -1,18 +1,8 @@
 import SwiftUI
-// Use the Palace model and CreateMemoryItemView from Models/PalaceModels.swift
-// (No explicit import needed if files are in the same target)
 
 struct MemoryPalaceListView: View {
-    // random mai mult pentru test sa vad ca merge, no database :/
-    @State private var palaces: [Palace] = [
-        Palace(name: "The Grand Library", description: "A vast library with endless shelves, perfect for storing facts and stories."),
-        Palace(name: "Sunny Beach House", description: "A bright, airy house by the sea, ideal for visualizing lists and sequences."),
-        Palace(name: "Mountain Retreat", description: "A peaceful mountain cabin, great for memorizing complex concepts."),
-        Palace(name: "City Art Gallery", description: "A modern gallery with colorful rooms for creative memory journeys.")
-    ]
+    @StateObject private var palaceStorage = PalaceStorage()
     @State private var showCreateSheet = false
-
-// Removed the unused and empty addPalace() function.
 
     var body: some View {
         NavigationStack {
@@ -34,14 +24,15 @@ struct MemoryPalaceListView: View {
                         }
                     }
                     .padding(.horizontal)
+                    
                     // List of Palaces
                     ScrollView {
                         VStack(spacing: 18) {
-                            ForEach(Array(palaces.enumerated()), id: \.element.id) { index, palace in
-                                NavigationLink(destination: PalacesRoomsView(palace: $palaces[index])) {
-                                    PalaceCard(palace: palace) {
-                                        // ma folosesc direct de remove la lista ca sa mearga asta, se apeleaza cand se apeleaza onDelete din Palace Card
-                                        palaces.remove(at: index) // O(1) delete
+                            ForEach(Array(palaceStorage.palaces.enumerated()), id: \.element.id) { index, palace in
+                                NavigationLink(destination: PalacesRoomsView(palace: $palaceStorage.palaces[index])) {
+                                    PalaceCard(palace: palace, palaceStorage: palaceStorage) {
+                                        palaceStorage.deletePalace(palace)
+                                        palaceStorage.palaces.remove(at: index)
                                     }
                                 }
                                 .buttonStyle(PlainButtonStyle())
@@ -57,31 +48,40 @@ struct MemoryPalaceListView: View {
         }
         .sheet(isPresented: $showCreateSheet) {
             CreateMemoryItemView(onCreatePalace: { newPalace in
-                palaces.append(newPalace)
+                palaceStorage.palaces.append(newPalace)
+                palaceStorage.savePalace(newPalace)
                 showCreateSheet = false
             })
+        }
+        .onAppear {
+            palaceStorage.loadPalaces()
         }
     }
 }
 
 struct PalaceCard: View {
     let palace: Palace
+    let palaceStorage: PalaceStorage
     var onDelete: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text(palace.name)
+                // Editable palace name with AppStorage binding
+                TextField("Palace Name", text: palaceStorage.palaceNameBinding(for: palace))
                     .font(.title2).fontWeight(.bold)
                     .foregroundColor(.primary)
-                Spacer()
-                Image(systemName: "building.columns")
-                    .foregroundColor(.purple)
+                    .textFieldStyle(PlainTextFieldStyle())
                 
-                //buton de delete a palatului
-                Button(action:{
+                Spacer()
+                
+                Image(systemName: "building.columns")
+                    .foregroundColor(Color(palace.color))
+                
+                // Delete button
+                Button(action: {
                     onDelete()
-                }){
+                }) {
                     Image(systemName: "trash")
                         .foregroundColor(.red)
                 }
@@ -93,12 +93,205 @@ struct PalaceCard: View {
                     .font(.body)
                     .foregroundColor(.secondary)
             }
+            
+            // Room count indicator
+            HStack {
+                Image(systemName: "door.left.hand.closed")
+                    .foregroundColor(.blue)
+                    .font(.caption)
+                Text("\(palace.rooms.count) room\(palace.rooms.count == 1 ? "" : "s")")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Spacer()
+            }
+            
+            // Color indicator
+            HStack {
+                Text("Color:")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Circle()
+                    .fill(Color(palace.color))
+                    .frame(width: 20, height: 20)
+                Spacer()
+            }
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.white.opacity(0.95))
-                .shadow(color: .purple.opacity(0.10), radius: 6, x: 0, y: 4)
+                .shadow(color: Color(palace.color).opacity(0.10), radius: 6, x: 0, y: 4)
+        )
+    }
+}
+
+// MARK: - PalacesRoomsView
+struct PalacesRoomsView: View {
+    @Binding var palace: Palace
+    @StateObject private var palaceStorage = PalaceStorage()
+    @State private var showRoomSheet = false
+    @State private var newRoom = Room(name: "")
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [Color.purple.opacity(0.08), Color.blue.opacity(0.06), Color.pink.opacity(0.06)]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 20) {
+                // Palace Info Header
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Image(systemName: "building.columns.fill")
+                            .font(.title)
+                            .foregroundColor(.purple)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(palace.name)
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.primary)
+
+                            if !palace.description.isEmpty {
+                                Text(palace.description)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(2)
+                            }
+                        }
+
+                        Spacer()
+                    }
+
+                    HStack {
+                        Image(systemName: "door.left.hand.closed")
+                            .foregroundColor(.blue)
+                            .font(.caption)
+                        Text("\(palace.rooms.count) room\(palace.rooms.count == 1 ? "" : "s")")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.white.opacity(0.9))
+                        .shadow(color: .purple.opacity(0.1), radius: 6, x: 0, y: 4)
+                )
+                .padding(.horizontal)
+
+                // Add Room Button
+                Button(action: {
+                    newRoom = Room(name: "")
+                    showRoomSheet = true
+                }) {
+                    Label("Add Room", systemImage: "plus")
+                        .font(.body)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.purple.opacity(0.15))
+                        .cornerRadius(12)
+                }
+                .padding(.horizontal)
+
+                // Room Grid or Empty State
+                if palace.rooms.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "door.left.hand.closed")
+                            .font(.system(size: 64))
+                            .foregroundColor(.gray.opacity(0.5))
+
+                        Text("No rooms in this palace")
+                            .font(.title3)
+                            .fontWeight(.medium)
+                            .foregroundColor(.secondary)
+
+                        Text("This palace doesn't have any rooms yet. You can add rooms using the button above.")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                    .padding(40)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.white.opacity(0.7))
+                            .shadow(color: .gray.opacity(0.1), radius: 8, x: 0, y: 4)
+                    )
+                    .padding(.horizontal)
+                } else {
+                    ScrollView {
+                        LazyVGrid(columns: [
+                            GridItem(.flexible()),
+                            GridItem(.flexible())
+                        ], spacing: 16) {
+                            ForEach(palace.rooms) { room in
+                                RoomDisplayCard(room: room) {
+                                    if let index = palace.rooms.firstIndex(where: { $0.id == room.id }) {
+                                        palace.rooms.remove(at: index)
+                                        palaceStorage.saveRooms(for: palace)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+            }
+        }
+        .navigationTitle("Palace Rooms")
+        .sheet(isPresented: $showRoomSheet) {
+            RoomFormView(room: $newRoom) {
+                palace.rooms.append(newRoom)
+                palaceStorage.saveRooms(for: palace)
+                showRoomSheet = false
+            }
+        }
+    }
+}
+
+// MARK: - RoomDisplayCard
+struct RoomDisplayCard: View {
+    let room: Room
+    var onDelete: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "door.left.hand.closed")
+                    .foregroundColor(.blue)
+                    .font(.title2)
+                
+                Spacer()
+                
+                Button(action: onDelete) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                        .font(.caption)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            
+            Text(room.name)
+                .font(.headline)
+                .fontWeight(.bold)
+                .foregroundColor(.primary)
+            
+            if !room.description.isEmpty {
+                Text(room.description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white.opacity(0.9))
+                .shadow(color: .blue.opacity(0.1), radius: 4, x: 0, y: 2)
         )
     }
 }
