@@ -34,6 +34,7 @@ public struct Room: Identifiable, Codable {
 // MARK: - Palace Storage Manager
 public class PalaceStorage: ObservableObject {
     @Published public var palaces: [Palace] = []
+    @Published public var currentPalace: Palace?
     
     // AppStorage keys for each palace
     private func palaceKey(for id: UUID, property: String) -> String {
@@ -49,8 +50,10 @@ public class PalaceStorage: ObservableObject {
             // User has completed setup, load saved palaces from UserDefaults
             loadSavedPalaces()
         } else {
-            // First time setup - load default palaces
-            if palaces.isEmpty {
+            // First time setup - only load default palaces if we haven't loaded any yet
+            // Check if we already have palaces in UserDefaults to avoid duplicates
+            let existingPalaceKeys = UserDefaults.standard.dictionaryRepresentation().keys.filter { $0.hasPrefix("palace_") }
+            if existingPalaceKeys.isEmpty && palaces.isEmpty {
                 palaces = [
                     Palace(name: "The Grand Library", description: "A vast library with endless shelves, perfect for storing facts and stories.", color: "purple"),
                     Palace(name: "Sunny Beach House", description: "A bright, airy house by the sea, ideal for visualizing lists and sequences.", color: "blue"),
@@ -101,6 +104,9 @@ public class PalaceStorage: ObservableObject {
                 loadRooms(for: palace)
             }
         }
+        
+        // After loading palaces, also load the current palace
+        loadCurrentPalace()
     }
     
     // Save palace to AppStorage
@@ -180,7 +186,74 @@ public class PalaceStorage: ObservableObject {
             UserDefaults.standard.set(data, forKey: roomsKey)
         }
     }
+    
+    // Set the current active palace
+    public func setCurrentPalace(_ palace: Palace) {
+        currentPalace = palace
+        // Save to UserDefaults for persistence
+        UserDefaults.standard.set(palace.id.uuidString, forKey: "currentPalaceId")
+        
+        // Debug: Print when current palace is set
+        print("Current palace set to: \(palace.name) with color: \(palace.color)")
+    }
+    
+    // Load the current palace from UserDefaults
+    public func loadCurrentPalace() {
+        if let currentPalaceId = UserDefaults.standard.string(forKey: "currentPalaceId"),
+           let uuid = UUID(uuidString: currentPalaceId),
+           let palace = palaces.first(where: { $0.id == uuid }) {
+            currentPalace = palace
+            print("Loaded current palace from UserDefaults: \(palace.name) with color: \(palace.color)")
+        } else if let firstPalace = palaces.first {
+            // Default to first palace if no current palace is set
+            currentPalace = firstPalace
+            print("No current palace found, defaulting to first palace: \(firstPalace.name) with color: \(firstPalace.color)")
+        } else {
+            print("No palaces found to set as current")
+        }
+    }
+    
+    // Get the current palace color as SwiftUI Color
+    public func getCurrentPalaceColor() -> Color {
+        if let currentPalace = currentPalace {
+            let color = getPalaceColor(currentPalace)
+            print("Getting current palace color: \(currentPalace.name) -> \(currentPalace.color) -> \(color)")
+            return color
+        } else if let firstPalace = palaces.first {
+            let color = getPalaceColor(firstPalace)
+            print("No current palace, using first palace color: \(firstPalace.name) -> \(firstPalace.color) -> \(color)")
+            return color
+        }
+        print("No palaces found, using default purple")
+        return .purple // Default fallback
+    }
+    
+    // Get palace color as SwiftUI Color
+    public func getPalaceColor(_ palace: Palace) -> Color {
+        switch palace.color.lowercased() {
+        case "purple": return .purple
+        case "blue": return .blue
+        case "green": return .green
+        case "pink": return .pink
+        case "orange": return .orange
+        case "red": return .red
+        case "yellow": return .yellow
+        case "indigo": return .indigo
+        default: return .purple
+        }
+    }
+    
+    // Unlock a new palace and set it as current
+    public func unlockPalace(_ palace: Palace) {
+        // Mark palace as unlocked (you can add an isUnlocked property if needed)
+        setCurrentPalace(palace)
+        
+        // Save the updated palace state
+        savePalace(palace)
+    }
 }
+
+
 
 // MARK: - Form Views
 // Form to create or edit a Palace

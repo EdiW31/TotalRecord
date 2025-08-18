@@ -138,21 +138,34 @@ struct PalaceCreationFlowView: View {
         let currentPalace = palaceTemplates[currentPalaceIndex]
         // Use customized palace if available, otherwise use template
         let palaceToSave = currentPalaceIndex < createdPalaces.count ? createdPalaces[currentPalaceIndex] : currentPalace
+        print("Saving current palace: \(palaceToSave.name) with color: \(palaceToSave.color)")
         createdPalaces.append(palaceToSave)
     }
     
     private func saveAllPalacesToStorage() {
+        print("=== SAVING ALL PALACES TO STORAGE ===")
+        print("Created palaces count: \(createdPalaces.count)")
+        
         // Clear existing palaces and save all created palaces to PalaceStorage
         palaceStorage.palaces.removeAll()
         
-        for palace in createdPalaces {
+        for (index, palace) in createdPalaces.enumerated() {
+            print("Saving palace \(index): \(palace.name) with color: \(palace.color)")
             palaceStorage.palaces.append(palace)
             palaceStorage.savePalace(palace)
             palaceStorage.saveRooms(for: palace)
         }
         
+        // Set the first palace as current (unlocked)
+        if let firstPalace = createdPalaces.first {
+            print("Setting first palace as current: \(firstPalace.name) with color: \(firstPalace.color)")
+            palaceStorage.setCurrentPalace(firstPalace)
+        }
+        
         // Mark setup as completed
         UserDefaults.standard.set(true, forKey: "hasCompletedFirstTimeSetup")
+        print("Setup marked as completed")
+        print("=== END SAVING PALACES ===")
     }
 }
 

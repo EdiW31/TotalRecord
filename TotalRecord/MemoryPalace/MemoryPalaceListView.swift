@@ -36,6 +36,9 @@ struct MemoryPalaceListView: View {
                                     }
                                 }
                                 .buttonStyle(PlainButtonStyle())
+                                .onTapGesture {
+                                    palaceStorage.setCurrentPalace(palace)
+                                }
                             }
                         }
                         .padding(.horizontal)
@@ -55,6 +58,7 @@ struct MemoryPalaceListView: View {
         }
         .onAppear {
             palaceStorage.loadPalaces()
+            palaceStorage.loadCurrentPalace()
         }
     }
 }
@@ -76,7 +80,7 @@ struct PalaceCard: View {
                 Spacer()
                 
                 Image(systemName: "building.columns")
-                    .foregroundColor(Color(palace.color))
+                    .foregroundColor(palaceStorage.getPalaceColor(palace))
                 
                 // Delete button
                 Button(action: {
@@ -111,7 +115,7 @@ struct PalaceCard: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 Circle()
-                    .fill(Color(palace.color))
+                    .fill(palaceStorage.getPalaceColor(palace))
                     .frame(width: 20, height: 20)
                 Spacer()
             }
@@ -120,7 +124,7 @@ struct PalaceCard: View {
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.white.opacity(0.95))
-                .shadow(color: Color(palace.color).opacity(0.10), radius: 6, x: 0, y: 4)
+                .shadow(color: palaceStorage.getPalaceColor(palace).opacity(0.10), radius: 6, x: 0, y: 4)
         )
     }
 }
