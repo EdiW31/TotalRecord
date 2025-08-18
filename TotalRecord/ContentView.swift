@@ -50,7 +50,7 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            hasCompletedFirstTimeSetup = false
+            // hasCompletedFirstTimeSetup = false
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 withAnimation(.easeOut(duration: 0.6)) {
                     showSplash = false
