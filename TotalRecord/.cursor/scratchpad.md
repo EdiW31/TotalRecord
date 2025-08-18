@@ -123,7 +123,7 @@
     - Use `Form` and `List` for input and editing.
     - **Exercise:** Make a form to add/edit items in a list.
 
-- [ ] Task 8: First-Time User Experience & Palace Creation
+- [x] Task 8: First-Time User Experience & Palace Creation
     ✅ Success Criteria: Users must create 5 personalized palaces on first launch with custom names, difficulties, and colors.
     🎯 Learning Goal: Build multi-step onboarding flows and user personalization.
 
@@ -199,8 +199,8 @@
 - [x] Task 4: Implement Sequence Recall game mode
 - [x] Task 5: Implement Card Locator game mode
 - [x] Task 6: Implement Speed Match game mode
-- [X] Task 7: Build Memory Palace creation and editing UI
-- [ ] Task 8: First-Time User Experience & Palace Creation
+- [x] Task 7: Build Memory Palace creation and editing UI
+- [x] Task 8: First-Time User Experience & Palace Creation
 - [ ] Task 9: Palace Theme System
 - [ ] Task 10: Automatic Achievement System
 - [ ] Task 11: Palace Progress & Persistence
