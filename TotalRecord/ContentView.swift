@@ -66,6 +66,13 @@ struct ContentView: View {
                 }
             }
         }
+        .onChange(of: hasCompletedFirstTimeSetup) { newValue in
+            if newValue {
+                // Setup completed, show main app
+                showWelcomeFlow = false
+                showPalaceCreation = false
+            }
+        }
     }
 }
 

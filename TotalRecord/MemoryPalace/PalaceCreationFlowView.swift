@@ -151,16 +151,13 @@ struct PalaceCreationFlowView: View {
         
         for (index, palace) in createdPalaces.enumerated() {
             print("Saving palace \(index): \(palace.name) with color: \(palace.color)")
-            palaceStorage.palaces.append(palace)
-            palaceStorage.savePalace(palace)
+            // Use addPalace to ensure proper creation order and unlock status
+            palaceStorage.addPalace(palace)
             palaceStorage.saveRooms(for: palace)
         }
         
-        // Set the first palace as current (unlocked)
-        if let firstPalace = createdPalaces.first {
-            print("Setting first palace as current: \(firstPalace.name) with color: \(firstPalace.color)")
-            palaceStorage.setCurrentPalace(firstPalace)
-        }
+        // First palace is automatically unlocked by addPalace method
+        // No need to manually set current palace
         
         // Mark setup as completed
         UserDefaults.standard.set(true, forKey: "hasCompletedFirstTimeSetup")
