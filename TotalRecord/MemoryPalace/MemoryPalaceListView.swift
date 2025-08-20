@@ -6,8 +6,9 @@ struct MemoryPalaceListView: View {
     @State private var showCongratulations = false
     @State private var newlyUnlockedPalace: Palace?
     @State private var unlockAnimation = false
-    @State private var currentThemeColor: Color = .purple
     @State private var refreshTrigger = false
+    @State private var currentThemeColor: Color = .purple
+    
     
     // Haptic feedback
     private func triggerHapticFeedback() {
@@ -15,7 +16,7 @@ struct MemoryPalaceListView: View {
         impactFeedback.impactOccurred()
     }
     
-    // Background gradient colors
+    // Background gradient colors, se schimba in functie de tema si de themeColor
     private var backgroundGradientColors: [Color] {
         [
             currentThemeColor.opacity(0.13),
@@ -98,12 +99,11 @@ struct MemoryPalaceListView: View {
             Group {
                 if showCongratulations, let palace = newlyUnlockedPalace {
                     CongratulationsView(palace: palace) {
-                        print("Dismissing congrats screen for palace: \(palace.name)")
                         withAnimation(.easeInOut(duration: 0.3)) {
                             showCongratulations = false
                             newlyUnlockedPalace = nil
                         }
-                        // Force UI refresh after dismissal
+                        // UI Refresh
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             palaceStorage.objectWillChange.send()
                             refreshTrigger.toggle()
@@ -121,7 +121,6 @@ struct MemoryPalaceListView: View {
         .onChange(of: palaceStorage.currentPalace) { newPalace in
             if let palace = newPalace {
                 let newColor = palaceStorage.getPalaceColor(palace)
-                print("Theme changing from \(currentThemeColor) to \(newColor) for palace: \(palace.name)")
                 currentThemeColor = newColor
             }
         }
@@ -184,7 +183,6 @@ struct MemoryPalaceListView: View {
                     
                     // Force UI refresh to show unlock button changes for next palace
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        print("Refreshing UI after palace completion for: \(completedPalace.name)")
                         
                         // Force multiple refresh mechanisms to ensure UI updates
                         palaceStorage.objectWillChange.send()
@@ -192,7 +190,6 @@ struct MemoryPalaceListView: View {
                         
                         // Also force a palace storage refresh
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            print("Secondary UI refresh for unlock button visibility")
                             palaceStorage.objectWillChange.send()
                             refreshTrigger.toggle()
                         }
@@ -249,7 +246,7 @@ struct PalaceCard: View {
             
             // Content for locked vs unlocked palaces
             if !palace.isUnlocked {
-                                    // Unlock button for locked palaces
+                    // Unlock button for locked palaces
                     VStack(spacing: 8) {
                         Text(palaceStorage.getUnlockCondition(for: palace))
                             .font(.caption)
@@ -278,7 +275,6 @@ struct PalaceCard: View {
                         .disabled(!palaceStorage.canUnlockPalace(palace))
                         .onChange(of: palaceStorage.palaces) { _ in
                             // Force this card to refresh when palaces change
-                            print("PalaceCard refresh triggered for: \(palace.name)")
                         }
                     }
                     .padding(.top, 8)

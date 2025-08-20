@@ -87,7 +87,7 @@ public class PalaceStorage: ObservableObject {
         palaces.append(newPalace)
         savePalace(newPalace)
         
-        // If this is the first palace, unlock it
+        // Unlock it if it s the first palace
         if palaces.count == 1 {
             newPalace.isUnlocked = true
             savePalaceUnlockStatus(newPalace)
@@ -111,20 +111,19 @@ public class PalaceStorage: ObservableObject {
     public func canUnlockPalace(_ palace: Palace) -> Bool {
         // Get the index of this palace
         guard let currentIndex = palaces.firstIndex(where: { $0.id == palace.id }) else { 
-            print("❌ canUnlockPalace: Palace not found in array")
+            //print("canUnlockPalace: Palace not found in array")
             return false 
         }
         
         // First palace is always unlockable
         if currentIndex == 0 { 
-            print("✅ canUnlockPalace: First palace is always unlockable")
+            // print("canUnlockPalace: First palace is always unlockable")
             return true 
         }
         
         // Check if previous palace is completed
         let previousPalace = palaces[currentIndex - 1]
         let isCompleted = isPalaceCompleted(previousPalace)
-        print("🔍 canUnlockPalace: Palace '\(palace.name)' (index \(currentIndex)) - Previous palace '\(previousPalace.name)' completed: \(isCompleted)")
         return isCompleted
     }
 
@@ -144,6 +143,7 @@ public class PalaceStorage: ObservableObject {
         }
     }
 
+    // function to get the unlock condition for a palace, for the future
     public func getUnlockCondition(for palace: Palace) -> String {
         guard let currentIndex = palaces.firstIndex(where: { $0.id == palace.id }) else { return "" }
         
@@ -160,44 +160,23 @@ public class PalaceStorage: ObservableObject {
     // Mark a palace as completed (call this when user finishes using it)
     public func markPalaceCompleted(_ palace: Palace) {
         let completionKey = "completed_\(palace.id.uuidString)"
-        UserDefaults.standard.set(true, forKey: completionKey)
-        print("✅ markPalaceCompleted: Marked '\(palace.name)' as completed with key: \(completionKey)")
-        
-        // NO AUTO-UNLOCK: Palaces must be manually unlocked by user
-        // This ensures consistent behavior and user control
+        UserDefaults.standard.set(true, forKey: completionKey)        
     }
     
     // Check if a palace has been completed
     public func isPalaceCompleted(_ palace: Palace) -> Bool {
         let completionKey = "completed_\(palace.id.uuidString)"
         let isCompleted = UserDefaults.standard.bool(forKey: completionKey)
-        print("🔍 isPalaceCompleted: Palace '\(palace.name)' completed: \(isCompleted) (key: \(completionKey))")
         return isCompleted
-    }
-    
-    // Reset all palaces to locked state (useful for testing)
-    public func resetAllPalaces() {
-        for (index, palace) in palaces.enumerated() {
-            if index > 0 { // Keep first palace unlocked
-                palaces[index].isUnlocked = false
-                savePalace(palaces[index])
-            }
-        }
-        
-        // Clear all completion statuses
-        for palace in palaces {
-            UserDefaults.standard.removeObject(forKey: "completed_\(palace.id.uuidString)")
-        }
     }
     
     // Clear all data and reset to initial state
     public func clearAllData() {
-        // Clear all palace data
         let allKeys = UserDefaults.standard.dictionaryRepresentation().keys
         let palaceKeys = allKeys.filter { $0.hasPrefix("palace_") }
         let completionKeys = allKeys.filter { $0.hasPrefix("completed_") }
         
-        // Remove all palace-related data
+        // Removes all palace date
         for key in palaceKeys {
             UserDefaults.standard.removeObject(forKey: key)
         }
@@ -207,17 +186,15 @@ public class PalaceStorage: ObservableObject {
             UserDefaults.standard.removeObject(forKey: key)
         }
         
-        // Remove current palace
         UserDefaults.standard.removeObject(forKey: "currentPalaceId")
         
-        // Reset setup flag to show setup screen again
         UserDefaults.standard.set(false, forKey: "hasCompletedFirstTimeSetup")
         
-        // Clear in-memory palaces
         palaces = []
-        currentPalace = nil
+        currentPalace = nil 
     }
     
+    // AI Generated
     // Clear all data but keep setup completed (don't show setup screen again)
     public func clearAllDataKeepSetup() {
         // Clear all palace data
@@ -388,27 +365,19 @@ public class PalaceStorage: ObservableObject {
     // Set the current active palace
     public func setCurrentPalace(_ palace: Palace) {
         currentPalace = palace
-        // Save to UserDefaults for persistence
         UserDefaults.standard.set(palace.id.uuidString, forKey: "currentPalaceId")
-        
-        // Debug: Print when current palace is set
-        print("Current palace set to: \(palace.name) with color: \(palace.color)")
     }
     
     // Load the current palace from UserDefaults
     public func loadCurrentPalace() {
-        // Try to load the saved current palace first
         if let currentPalaceId = UserDefaults.standard.string(forKey: "currentPalaceId"),
            let uuid = UUID(uuidString: currentPalaceId),
            let savedPalace = palaces.first(where: { $0.id == uuid }) {
             currentPalace = savedPalace
-            print("Loaded saved current palace: \(savedPalace.name) with color: \(savedPalace.color)")
         } else if let firstPalace = palaces.first {
-            // Fallback to first palace if no saved current palace
             currentPalace = firstPalace
-            print("No saved current palace, using first palace: \(firstPalace.name) with color: \(firstPalace.color)")
         } else {
-            print("No palaces found to set as current")
+            // do nothing
         }
     }
     
@@ -416,15 +385,14 @@ public class PalaceStorage: ObservableObject {
     public func getCurrentPalaceColor() -> Color {
         if let currentPalace = currentPalace {
             let color = getPalaceColor(currentPalace)
-            print("Getting current palace color: \(currentPalace.name) -> \(currentPalace.color) -> \(color)")
+            // print("Getting current palace color: \(currentPalace.name) -> \(currentPalace.color) -> \(color)")
             return color
         } else if let firstPalace = palaces.first {
             let color = getPalaceColor(firstPalace)
-            print("No current palace, using first palace color: \(firstPalace.name) -> \(firstPalace.color) -> \(color)")
+            // print("No current palace, using first palace color: \(firstPalace.name) -> \(firstPalace.color) -> \(color)")
             return color
         }
-        print("No palaces found, using default purple")
-        return .purple // Default fallback
+        return .purple 
     }
     
     // Get palace color as SwiftUI Color
@@ -445,9 +413,6 @@ public class PalaceStorage: ObservableObject {
 
 }
 
-
-
-// MARK: - Form Views
 // Form to create or edit a Palace
 public struct PalaceFormView: View {
     @Binding var palace: Palace
