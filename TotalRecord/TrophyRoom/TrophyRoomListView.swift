@@ -1,14 +1,13 @@
 import SwiftUI
 
-struct MemoryPalaceListView: View {
-    @StateObject private var palaceStorage = PalaceStorage()
+struct TrophyRoomListView: View {
+    @StateObject private var trophyRoomStorage = TrophyRoomStorage()
     @State private var showCreateSheet = false
     @State private var showCongratulations = false
-    @State private var newlyUnlockedPalace: Palace?
+    @State private var newlyUnlockedTrophyRoom: TrophyRoom?
     @State private var unlockAnimation = false
     @State private var refreshTrigger = false
     @State private var currentThemeColor: Color = .purple
-    
     
     // Haptic feedback
     private func triggerHapticFeedback() {
@@ -16,7 +15,7 @@ struct MemoryPalaceListView: View {
         impactFeedback.impactOccurred()
     }
     
-    // Background gradient colors, se schimba in functie de tema si de themeColor
+    // Background gradient colors, changes based on theme and themeColor
     private var backgroundGradientColors: [Color] {
         [
             currentThemeColor.opacity(0.13),
@@ -33,16 +32,14 @@ struct MemoryPalaceListView: View {
                 VStack(spacing: 24) {
                     // Title and Buttons
                     HStack {
-                        Text("Memory Palaces")
+                        Text("Trophy Room")
                             .font(.system(size: 34, weight: .bold, design: .rounded))
                             .foregroundColor(currentThemeColor)
                         Spacer()
                         
-
-                        
                         // Clear all data button
                         Button(action: { 
-                            palaceStorage.clearAllDataKeepSetup()
+                            trophyRoomStorage.clearAllDataKeepSetup()
                         }) {
                             Image(systemName: "trash.circle.fill")
                                 .font(.system(size: 24))
@@ -59,16 +56,20 @@ struct MemoryPalaceListView: View {
                     }
                     .padding(.horizontal)
                     
-                    // List of Palaces
+                    // Trophy Score Card
+                    TrophyScoreCard(score: trophyRoomStorage.trophyScore)
+                        .padding(.horizontal)
+                    
+                    // List of Trophy Rooms
                     ScrollView {
                         VStack(spacing: 18) {
-                            ForEach(Array(palaceStorage.palaces.enumerated()), id: \.element.id) { index, palace in
+                            ForEach(Array(trophyRoomStorage.trophyRooms.enumerated()), id: \.element.id) { index, trophyRoom in
                                 let _ = refreshTrigger // Force refresh when unlock status changes
-                                if palace.isUnlocked {
-                                    NavigationLink(destination: PalacesRoomsView(palace: $palaceStorage.palaces[index])) {
-                                        PalaceCard(palace: palace, palaceStorage: palaceStorage) {
-                                            palaceStorage.deletePalace(palace)
-                                            palaceStorage.palaces.remove(at: index)
+                                if trophyRoom.isUnlocked {
+                                    NavigationLink(destination: TrophyRoomAchievementsView(trophyRoom: $trophyRoomStorage.trophyRooms[index])) {
+                                        TrophyRoomCard(trophyRoom: trophyRoom, trophyRoomStorage: trophyRoomStorage) {
+                                            trophyRoomStorage.deleteTrophyRoom(trophyRoom)
+                                            trophyRoomStorage.trophyRooms.remove(at: index)
                                         }
                                     }
                                     .buttonStyle(PlainButtonStyle())
@@ -76,8 +77,8 @@ struct MemoryPalaceListView: View {
                                         // Disabled to prevent random theme changes
                                     }
                                 } else {
-                                    PalaceCard(palace: palace, palaceStorage: palaceStorage) {
-                                        // No delete action for locked palaces
+                                    TrophyRoomCard(trophyRoom: trophyRoom, trophyRoomStorage: trophyRoomStorage) {
+                                        // No delete action for locked trophy rooms
                                     }
                                     .onTapGesture {
                                         // Disabled to prevent random theme changes
@@ -97,15 +98,15 @@ struct MemoryPalaceListView: View {
         // Congratulations Overlay
         .overlay(
             Group {
-                if showCongratulations, let palace = newlyUnlockedPalace {
-                    CongratulationsView(palace: palace) {
+                if showCongratulations, let trophyRoom = newlyUnlockedTrophyRoom {
+                    CongratulationsView(trophyRoom: trophyRoom) {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             showCongratulations = false
-                            newlyUnlockedPalace = nil
+                            newlyUnlockedTrophyRoom = nil
                         }
                         // UI Refresh
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            palaceStorage.objectWillChange.send()
+                            trophyRoomStorage.objectWillChange.send()
                             refreshTrigger.toggle()
                         }
                     }
@@ -113,43 +114,43 @@ struct MemoryPalaceListView: View {
             }
         )
         .sheet(isPresented: $showCreateSheet) {
-            CreateMemoryItemView(onCreatePalace: { newPalace in
-                palaceStorage.addPalace(newPalace)
+            CreateMemoryItemView(onCreateTrophyRoom: { newTrophyRoom in
+                trophyRoomStorage.addTrophyRoom(newTrophyRoom)
                 showCreateSheet = false
             })
         }
-        .onChange(of: palaceStorage.currentPalace) { newPalace in
-            if let palace = newPalace {
-                let newColor = palaceStorage.getPalaceColor(palace)
+        .onChange(of: trophyRoomStorage.currentTrophyRoom) { newTrophyRoom in
+            if let trophyRoom = newTrophyRoom {
+                let newColor = trophyRoomStorage.getTrophyRoomColor(trophyRoom)
                 currentThemeColor = newColor
             }
         }
         .onAppear {
-            palaceStorage.loadPalaces()
-            palaceStorage.loadCurrentPalace()
+            trophyRoomStorage.loadTrophyRooms()
+            trophyRoomStorage.loadCurrentTrophyRoom()
             
-            // Ensure first palace is always unlocked by default
-            if let firstPalace = palaceStorage.palaces.first {
-                if !firstPalace.isUnlocked {
-                    palaceStorage.palaces[0].isUnlocked = true
-                    palaceStorage.savePalaceUnlockStatus(palaceStorage.palaces[0])
+            // Ensure first trophy room is always unlocked by default
+            if let firstTrophyRoom = trophyRoomStorage.trophyRooms.first {
+                if !firstTrophyRoom.isUnlocked {
+                    trophyRoomStorage.trophyRooms[0].isUnlocked = true
+                    trophyRoomStorage.saveTrophyRoomUnlockStatus(trophyRoomStorage.trophyRooms[0])
                 }
             }
             
-            // Set theme color based on current palace (not always first palace)
-            currentThemeColor = palaceStorage.getCurrentPalaceColor()
+            // Set theme color based on current trophy room (not always first trophy room)
+            currentThemeColor = trophyRoomStorage.getCurrentTrophyRoomColor()
             
-            // Listen for palace unlock notifications
+            // Listen for trophy room unlock notifications
             NotificationCenter.default.addObserver(
-                forName: NSNotification.Name("PalaceUnlocked"),
+                forName: NSNotification.Name("TrophyRoomUnlocked"),
                 object: nil,
                 queue: .main
             ) { notification in
-                if let unlockedPalace = notification.object as? Palace {
+                if let unlockedTrophyRoom = notification.object as? TrophyRoom {
                     // Small delay to let the UI update first
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         triggerHapticFeedback()
-                        newlyUnlockedPalace = unlockedPalace
+                        newlyUnlockedTrophyRoom = unlockedTrophyRoom
                         withAnimation(.easeInOut(duration: 0.3)) {
                             showCongratulations = true
                         }
@@ -157,40 +158,40 @@ struct MemoryPalaceListView: View {
                     
                     // Force UI refresh to show unlock button changes
                     DispatchQueue.main.async {
-                        palaceStorage.objectWillChange.send()
+                        trophyRoomStorage.objectWillChange.send()
                         // Also refresh the view to show unlock button changes
                         refreshTrigger.toggle()
                     }
                 }
             }
             
-            // Listen for palace completion notifications
+            // Listen for trophy room completion notifications
             NotificationCenter.default.addObserver(
-                forName: NSNotification.Name("PalaceCompleted"),
+                forName: NSNotification.Name("TrophyRoomCompleted"),
                 object: nil,
                 queue: .main
             ) { notification in
-                if let completedPalace = notification.object as? Palace {
+                if let completedTrophyRoom = notification.object as? TrophyRoom {
                     triggerHapticFeedback()
-                    newlyUnlockedPalace = completedPalace
+                    newlyUnlockedTrophyRoom = completedTrophyRoom
                     
-                    // NO AUTO-UNLOCK: User must manually unlock next palace
+                    // NO AUTO-UNLOCK: User must manually unlock next trophy room
                     // This ensures consistent behavior and user control
                     
                     withAnimation(.easeInOut(duration: 0.3)) {
                         showCongratulations = true
                     }
                     
-                    // Force UI refresh to show unlock button changes for next palace
+                    // Force UI refresh to show unlock button changes for next trophy room
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         
                         // Force multiple refresh mechanisms to ensure UI updates
-                        palaceStorage.objectWillChange.send()
+                        trophyRoomStorage.objectWillChange.send()
                         refreshTrigger.toggle()
                         
-                        // Also force a palace storage refresh
+                        // Also force a trophy room storage refresh
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            palaceStorage.objectWillChange.send()
+                            trophyRoomStorage.objectWillChange.send()
                             refreshTrigger.toggle()
                         }
                     }
@@ -200,9 +201,9 @@ struct MemoryPalaceListView: View {
     }
 }
 
-struct PalaceCard: View {
-    let palace: Palace
-    let palaceStorage: PalaceStorage
+struct TrophyRoomCard: View {
+    let trophyRoom: TrophyRoom
+    let trophyRoomStorage: TrophyRoomStorage
     var onDelete: () -> Void
     @State private var cardScale: CGFloat = 1.0
     @State private var cardOpacity: Double = 1.0
@@ -210,14 +211,14 @@ struct PalaceCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                // Palace name (only editable if unlocked)
-                if palace.isUnlocked {
-                    TextField("Palace Name", text: palaceStorage.palaceNameBinding(for: palace))
+                // Trophy room name (only editable if unlocked)
+                if trophyRoom.isUnlocked {
+                    TextField("Trophy Room Name", text: trophyRoomStorage.trophyRoomNameBinding(for: trophyRoom))
                         .font(.title2).fontWeight(.bold)
                         .foregroundColor(.primary)
                         .textFieldStyle(PlainTextFieldStyle())
                 } else {
-                    Text(palace.name)
+                    Text(trophyRoom.name)
                         .font(.title2).fontWeight(.bold)
                         .foregroundColor(.secondary)
                 }
@@ -225,11 +226,11 @@ struct PalaceCard: View {
                 Spacer()
                 
                 // Lock/Unlock icon
-                Image(systemName: palace.isUnlocked ? "building.columns" : "lock.fill")
-                    .foregroundColor(palace.isUnlocked ? palaceStorage.getPalaceColor(palace) : .gray)
+                Image(systemName: trophyRoom.isUnlocked ? "trophy.fill" : "lock.fill")
+                    .foregroundColor(trophyRoom.isUnlocked ? trophyRoomStorage.getTrophyRoomColor(trophyRoom) : .gray)
                 
-                // Delete button (only for unlocked palaces)
-                if palace.isUnlocked {
+                // Delete button (only for unlocked trophy rooms)
+                if trophyRoom.isUnlocked {
                     Button(action: { onDelete() }) {
                         Image(systemName: "trash")
                             .foregroundColor(.red)
@@ -238,53 +239,53 @@ struct PalaceCard: View {
                 }
             }
 
-            if !palace.description.isEmpty {
-                Text(palace.description)
+            if !trophyRoom.description.isEmpty {
+                Text(trophyRoom.description)
                     .font(.body)
-                    .foregroundColor(palace.isUnlocked ? .secondary : .secondary.opacity(0.6))
+                    .foregroundColor(trophyRoom.isUnlocked ? .secondary : .secondary.opacity(0.6))
             }
             
-            // Content for locked vs unlocked palaces
-            if !palace.isUnlocked {
-                    // Unlock button for locked palaces
+            // Content for locked vs unlocked trophy rooms
+            if !trophyRoom.isUnlocked {
+                    // Unlock button for locked trophy rooms
                     VStack(spacing: 8) {
-                        Text(palaceStorage.getUnlockCondition(for: palace))
+                        Text(trophyRoomStorage.getUnlockCondition(for: trophyRoom))
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
                         
                         // Debug info
-                        Text("Can unlock: \(palaceStorage.canUnlockPalace(palace) ? "Yes" : "No")")
+                        Text("Can unlock: \(trophyRoomStorage.canUnlockTrophyRoom(trophyRoom) ? "Yes" : "No")")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         
                         Button(action: {
-                            palaceStorage.unlockPalace(palace)
+                            trophyRoomStorage.unlockTrophyRoom(trophyRoom)
                         }) {
-                            Text("Unlock Palace")
+                            Text("Unlock Trophy Room")
                                 .font(.caption)
                                 .fontWeight(.medium)
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
                                 .background(
-                                    palaceStorage.canUnlockPalace(palace) ? Color.blue : Color.gray
+                                    trophyRoomStorage.canUnlockTrophyRoom(trophyRoom) ? Color.blue : Color.gray
                                 )
                                 .cornerRadius(8)
                         }
-                        .disabled(!palaceStorage.canUnlockPalace(palace))
-                        .onChange(of: palaceStorage.palaces) { _ in
-                            // Force this card to refresh when palaces change
+                        .disabled(!trophyRoomStorage.canUnlockTrophyRoom(trophyRoom))
+                        .onChange(of: trophyRoomStorage.trophyRooms) { _ in
+                            // Force this card to refresh when trophy rooms change
                         }
                     }
                     .padding(.top, 8)
             } else {
-                // Room count for unlocked palaces
+                // Achievement count for unlocked trophy rooms
                 HStack {
-                    Image(systemName: "door.left.hand.closed")
-                        .foregroundColor(.blue)
+                    Image(systemName: "star.fill")
+                        .foregroundColor(.yellow)
                         .font(.caption)
-                    Text("\(palace.rooms.count) room\(palace.rooms.count == 1 ? "" : "s")")
+                    Text("\(trophyRoom.achievements.count) achievement\(trophyRoom.achievements.count == 1 ? "" : "s")")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Spacer()
@@ -296,7 +297,7 @@ struct PalaceCard: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Circle()
-                        .fill(palaceStorage.getPalaceColor(palace))
+                        .fill(trophyRoomStorage.getTrophyRoomColor(trophyRoom))
                         .frame(width: 20, height: 20)
                     Spacer()
                 }
@@ -305,13 +306,13 @@ struct PalaceCard: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(palace.isUnlocked ? Color.white.opacity(0.95) : Color.gray.opacity(0.1))
-                .shadow(color: palace.isUnlocked ? palaceStorage.getPalaceColor(palace).opacity(0.10) : .clear, radius: 6, x: 0, y: 4)
+                .fill(trophyRoom.isUnlocked ? Color.white.opacity(0.95) : Color.gray.opacity(0.1))
+                .shadow(color: trophyRoom.isUnlocked ? trophyRoomStorage.getTrophyRoomColor(trophyRoom).opacity(0.10) : .clear, radius: 6, x: 0, y: 4)
         )
         .overlay(
-            // Lock overlay for locked palaces
+            // Lock overlay for locked trophy rooms
             RoundedRectangle(cornerRadius: 16)
-                .stroke(palace.isUnlocked ? Color.clear : Color.gray.opacity(0.3), lineWidth: 1)
+                .stroke(trophyRoom.isUnlocked ? Color.clear : Color.gray.opacity(0.3), lineWidth: 1)
         )
         .scaleEffect(cardScale)
         .opacity(cardOpacity)
@@ -322,9 +323,9 @@ struct PalaceCard: View {
                 cardOpacity = 1.0
             }
         }
-        .onChange(of: palace.isUnlocked) { isUnlocked in
+        .onChange(of: trophyRoom.isUnlocked) { isUnlocked in
             if isUnlocked {
-                // Celebration animation when palace unlocks
+                // Celebration animation when trophy room unlocks
                 withAnimation(.spring(response: 0.6, dampingFraction: 0.6)) {
                     cardScale = 1.05
                 }
@@ -345,12 +346,11 @@ struct PalaceCard: View {
     }
 }
 
-// MARK: - PalacesRoomsView
-struct PalacesRoomsView: View {
-    @Binding var palace: Palace
-    @StateObject private var palaceStorage = PalaceStorage()
-    @State private var showRoomSheet = false
-    @State private var newRoom = Room(name: "")
+struct TrophyRoomAchievementsView: View {
+    @Binding var trophyRoom: TrophyRoom
+    @StateObject private var trophyRoomStorage = TrophyRoomStorage()
+    @State private var showAchievementSheet = false
+    @State private var newAchievement = Achievement(name: "", type: .completion)
 
     var body: some View {
         ZStack {
@@ -362,21 +362,21 @@ struct PalacesRoomsView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 20) {
-                // Palace Info Header
+                // Trophy Room Info Header
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Image(systemName: "building.columns.fill")
+                        Image(systemName: "trophy.fill")
                             .font(.title)
-                            .foregroundColor(.purple)
+                            .foregroundColor(.yellow)
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(palace.name)
+                            Text(trophyRoom.name)
                                 .font(.title2)
                                 .fontWeight(.bold)
                                 .foregroundColor(.primary)
 
-                            if !palace.description.isEmpty {
-                                Text(palace.description)
+                            if !trophyRoom.description.isEmpty {
+                                Text(trophyRoom.description)
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                     .lineLimit(2)
@@ -387,10 +387,10 @@ struct PalacesRoomsView: View {
                     }
 
                     HStack {
-                        Image(systemName: "door.left.hand.closed")
-                            .foregroundColor(.blue)
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.yellow)
                             .font(.caption)
-                        Text("\(palace.rooms.count) room\(palace.rooms.count == 1 ? "" : "s")")
+                        Text("\(trophyRoom.achievements.count) achievement\(trophyRoom.achievements.count == 1 ? "" : "s")")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -403,13 +403,13 @@ struct PalacesRoomsView: View {
                 )
                 .padding(.horizontal)
 
-                // Add Room Button and Complete Palace Button
+                // Add Achievement Button and Complete Trophy Room Button
                 HStack(spacing: 12) {
                     Button(action: {
-                        newRoom = Room(name: "")
-                        showRoomSheet = true
+                        newAchievement = Achievement(name: "", type: .completion)
+                        showAchievementSheet = true
                     }) {
-                        Label("Add Room", systemImage: "plus")
+                        Label("Add Achievement", systemImage: "plus")
                             .font(.body)
                             .padding()
                             .frame(maxWidth: .infinity)
@@ -418,15 +418,13 @@ struct PalacesRoomsView: View {
                     }
                     
                     Button(action: {
-                        palaceStorage.markPalaceCompleted(palace)
+                        trophyRoomStorage.markTrophyRoomCompleted(trophyRoom)
                         
-                        // NO AUTO-UNLOCK: User must manually unlock next palace
-                        // This ensures consistent behavior and user control
                         
                         // Post notification to trigger congratulations
                         NotificationCenter.default.post(
-                            name: NSNotification.Name("PalaceCompleted"),
-                            object: palace
+                            name: NSNotification.Name("TrophyRoomCompleted"),
+                            object: trophyRoom
                         )
                     }) {
                         Label("Mark Complete", systemImage: "checkmark.circle")
@@ -439,19 +437,19 @@ struct PalacesRoomsView: View {
                 }
                 .padding(.horizontal)
 
-                // Room Grid or Empty State
-                if palace.rooms.isEmpty {
+                // Achievement Grid or Empty State
+                if trophyRoom.achievements.isEmpty {
                     VStack(spacing: 16) {
-                        Image(systemName: "door.left.hand.closed")
+                        Image(systemName: "star.fill")
                             .font(.system(size: 64))
                             .foregroundColor(.gray.opacity(0.5))
 
-                        Text("No rooms in this palace")
+                        Text("No achievements in this trophy room")
                             .font(.title3)
                             .fontWeight(.medium)
                             .foregroundColor(.secondary)
 
-                        Text("This palace doesn't have any rooms yet. You can add rooms using the button above.")
+                        Text("This trophy room doesn't have any achievements yet. You can add achievements using the button above.")
                             .font(.body)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -470,11 +468,11 @@ struct PalacesRoomsView: View {
                             GridItem(.flexible()),
                             GridItem(.flexible())
                         ], spacing: 16) {
-                            ForEach(palace.rooms) { room in
-                                RoomDisplayCard(room: room) {
-                                    if let index = palace.rooms.firstIndex(where: { $0.id == room.id }) {
-                                        palace.rooms.remove(at: index)
-                                        palaceStorage.saveRooms(for: palace)
+                            ForEach(trophyRoom.achievements) { achievement in
+                                AchievementDisplayCard(achievement: achievement) {
+                                    if let index = trophyRoom.achievements.firstIndex(where: { $0.id == achievement.id }) {
+                                        trophyRoom.achievements.remove(at: index)
+                                        trophyRoomStorage.saveAchievements(for: trophyRoom)
                                     }
                                 }
                             }
@@ -484,28 +482,26 @@ struct PalacesRoomsView: View {
                 }
             }
         }
-        .navigationTitle("Palace Rooms")
-        .sheet(isPresented: $showRoomSheet) {
-            RoomFormView(room: $newRoom) {
-                palace.rooms.append(newRoom)
-                palaceStorage.saveRooms(for: palace)
-                showRoomSheet = false
+        .navigationTitle("Trophy Room Achievements")
+        .sheet(isPresented: $showAchievementSheet) {
+            AchievementFormView(achievement: $newAchievement) {
+                trophyRoom.achievements.append(newAchievement)
+                trophyRoomStorage.saveAchievements(for: trophyRoom)
+                showAchievementSheet = false
             }
         }
-
     }
 }
 
-// MARK: - RoomDisplayCard
-struct RoomDisplayCard: View {
-    let room: Room
+struct AchievementDisplayCard: View {
+    let achievement: Achievement
     var onDelete: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Image(systemName: "door.left.hand.closed")
-                    .foregroundColor(.blue)
+                Image(systemName: "star.fill")
+                    .foregroundColor(.yellow)
                     .font(.title2)
                 
                 Spacer()
@@ -518,16 +514,33 @@ struct RoomDisplayCard: View {
                 .buttonStyle(PlainButtonStyle())
             }
             
-            Text(room.name)
+            Text(achievement.name)
                 .font(.headline)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
             
-            if !room.description.isEmpty {
-                Text(room.description)
+            if !achievement.description.isEmpty {
+                Text(achievement.description)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .lineLimit(2)
+            }
+            
+            // Progress indicator
+            if achievement.type == .speed || achievement.type == .accuracy {
+                ProgressView(value: achievement.currentValue, total: achievement.targetValue)
+                    .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+            }
+            
+            // Completion status
+            if achievement.isCompleted {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("Completed")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                }
             }
         }
         .padding()
@@ -539,9 +552,8 @@ struct RoomDisplayCard: View {
     }
 }
 
-// MARK: - Congratulations View
 struct CongratulationsView: View {
-    let palace: Palace
+    let trophyRoom: TrophyRoom
     let onDismiss: () -> Void
     @State private var showConfetti = false
     @State private var scale: CGFloat = 0.8
@@ -591,19 +603,19 @@ struct CongratulationsView: View {
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.center)
                 
-                // Palace name
+                // Trophy room name
                 Text("You've unlocked")
                     .font(.title3)
                     .foregroundColor(.secondary)
                 
-                Text(palace.name)
+                Text(trophyRoom.name)
                     .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundColor(.blue)
                     .multilineTextAlignment(.center)
                 
                 // Description
-                if !palace.description.isEmpty {
-                    Text(palace.description)
+                if !trophyRoom.description.isEmpty {
+                    Text(trophyRoom.description)
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -650,4 +662,46 @@ struct CongratulationsView: View {
         }
         .transition(.opacity.combined(with: .scale))
     }
+}
+
+struct TrophyScoreCard: View {
+    let score: TrophyScore
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            HStack {
+                Image(systemName: "trophy.fill")
+                    .font(.title)
+                    .foregroundColor(.yellow)
+                
+                VStack(alignment: .leading) {
+                    Text("Trophy Score")
+                        .font(.headline)
+                    Text("\(score.totalScore)")
+                        .font(.title)
+                        .fontWeight(.bold)
+                }
+                Spacer()
+            }
+            
+            // Progress indicators
+            HStack {
+                Label("\(score.unlockedRooms)/5 Rooms", systemImage: "trophy.fill")
+                Spacer()
+                Label("\(score.completedAchievements)/25 Achievements", systemImage: "checkmark.circle.fill")
+            }
+            .font(.caption)
+            
+            // Progress bar
+            ProgressView(value: score.overallProgress)
+                .progressViewStyle(LinearProgressViewStyle(tint: .yellow))
+        }
+        .padding()
+        .background(Color.yellow.opacity(0.1))
+        .cornerRadius(12)
+    }
+}
+
+#Preview {
+    TrophyRoomListView()
 }

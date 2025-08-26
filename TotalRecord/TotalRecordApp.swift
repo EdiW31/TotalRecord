@@ -9,7 +9,7 @@ import SwiftUI
 
 @main
 struct TotalRecordApp: App {
-    @StateObject private var palaceStorage = PalaceStorage()
+    @StateObject private var trophyRoomStorage = TrophyRoomStorage()
 
     init() {
         // macOS app initialization
@@ -17,17 +17,17 @@ struct TotalRecordApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(palaceStorage)
+                .environmentObject(trophyRoomStorage)
                 .onAppear {
-                    // Load palaces and set current palace
-                    palaceStorage.loadPalaces()
-                    palaceStorage.loadCurrentPalace()
+                    // Load trophy rooms and set current trophy room
+                    trophyRoomStorage.loadTrophyRooms()
+                    trophyRoomStorage.loadCurrentTrophyRoom()
                     
-                    // Debug: Print current palace info
-                    print("App loaded - Current palace: \(palaceStorage.currentPalace?.name ?? "None") with color: \(palaceStorage.currentPalace?.color ?? "None")")
-                    print("Total palaces: \(palaceStorage.palaces.count)")
-                    for (index, palace) in palaceStorage.palaces.enumerated() {
-                        print("Palace \(index): \(palace.name) - Color: \(palace.color)")
+                    // Debug: Print current trophy room info
+                    print("App loaded - Current trophy room: \(trophyRoomStorage.currentTrophyRoom?.name ?? "None") with color: \(trophyRoomStorage.currentTrophyRoom?.color ?? "None")")
+                    print("Total trophy rooms: \(trophyRoomStorage.trophyRooms.count)")
+                    for (index, trophyRoom) in trophyRoomStorage.trophyRooms.enumerated() {
+                        print("Trophy Room \(index): \(trophyRoom.name) - Color: \(trophyRoom.color)")
                     }
                 }
         }

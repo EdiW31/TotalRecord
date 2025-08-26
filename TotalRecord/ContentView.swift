@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  TotalRecord
-//
-//  Created by Eduard Weiss on 19.06.2025.
-//
-
 import SwiftUI
 
 struct ContentView: View {
@@ -14,11 +7,11 @@ struct ContentView: View {
     @State private var showWelcomeFlow = false
     @State private var showPalaceCreation = false
     
-    @EnvironmentObject var palaceStorage: PalaceStorage
+    @EnvironmentObject var trophyRoomStorage: TrophyRoomStorage
     
-    // Get the current palace color for theming
-    private var currentPalaceColor: Color {
-        return palaceStorage.getCurrentPalaceColor()
+    // Get the current trophy room color for theming
+    private var currentTrophyRoomColor: Color {
+        return trophyRoomStorage.getCurrentTrophyRoomColor()
     }
 
     var body: some View {
@@ -29,7 +22,7 @@ struct ContentView: View {
                 if showWelcomeFlow {
                     WelcomeCarouselView(hasCompletedFirstTimeSetup: $hasCompletedFirstTimeSetup)
                 } else {
-                    PalaceCreationFlowView(hasCompletedFirstTimeSetup: $hasCompletedFirstTimeSetup)
+                    TrophyRoomSetupView(hasCompletedFirstTimeSetup: $hasCompletedFirstTimeSetup)
                 }
             } else {
                 // Show normal app for returning users
@@ -44,18 +37,18 @@ struct ContentView: View {
                             Image(systemName: "gamecontroller")
                             Text("Games")
                         }
-                    MemoryPalaceListView()
+                    TrophyRoomListView()
                         .tabItem {
-                            Image(systemName: "building.columns")
-                            Text("Memory Palace")
+                            Image(systemName: "trophy.fill")
+                            Text("Trophy Room")
                         }
                 }
-                .tint(currentPalaceColor)
-                .background(currentPalaceColor.opacity(0.1)) 
+                .tint(currentTrophyRoomColor)
+                .background(currentTrophyRoomColor.opacity(0.1)) 
             }
         }
         .onAppear {
-            //hasCompletedFirstTimeSetup = false
+            hasCompletedFirstTimeSetup = false
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 withAnimation(.easeOut(duration: 0.6)) {
                     showSplash = false
@@ -79,13 +72,13 @@ struct ContentView: View {
 
 
 struct SplashScreen: View {
-    @EnvironmentObject var palaceStorage: PalaceStorage
+    @EnvironmentObject var trophyRoomStorage: TrophyRoomStorage
     @AppStorage("hasCompletedFirstTimeSetup") private var hasCompletedFirstTimeSetup = false
     @State private var scale: CGFloat = 0.7
     @State private var opacity: Double = 0.0
     
-    private var currentPalaceColor: Color {
-        return palaceStorage.getCurrentPalaceColor()
+    private var currentTrophyRoomColor: Color {
+        return trophyRoomStorage.getCurrentTrophyRoomColor()
     }
 
     var body: some View {
@@ -123,8 +116,8 @@ struct SplashScreen: View {
                         }
                     )
             } else {
-                // Use current palace color for theme when setup is complete
-                LinearGradient(gradient: Gradient(colors: [currentPalaceColor.opacity(0.18), currentPalaceColor.opacity(0.13), currentPalaceColor.opacity(0.10)]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                // Use current trophy room color for theme when setup is complete
+                LinearGradient(gradient: Gradient(colors: [currentTrophyRoomColor.opacity(0.18), currentTrophyRoomColor.opacity(0.13), currentTrophyRoomColor.opacity(0.10)]), startPoint: .topLeading, endPoint: .bottomTrailing)
                     .ignoresSafeArea()
                     .overlay(
                         VStack(spacing: 18) {
@@ -132,7 +125,7 @@ struct SplashScreen: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 120, height: 120)
-                                .foregroundColor(currentPalaceColor)
+                                .foregroundColor(currentTrophyRoomColor)
                                 .shadow(radius: 12)
                                 .scaleEffect(scale)
                                 .opacity(opacity)
@@ -144,8 +137,8 @@ struct SplashScreen: View {
                                 }
                             Text("TotalRecard")
                                 .font(.system(size: 40, weight: .bold, design: .rounded))
-                                .foregroundColor(currentPalaceColor)
-                                .shadow(color: currentPalaceColor.opacity(0.3), radius: 6, x: 0, y: 2)
+                                .foregroundColor(currentTrophyRoomColor)
+                                .shadow(color: currentTrophyRoomColor.opacity(0.3), radius: 6, x: 0, y: 2)
                                 .opacity(opacity)
                                 .onAppear {
                                     withAnimation(.easeIn(duration: 1.0).delay(0.2)) {
@@ -161,17 +154,17 @@ struct SplashScreen: View {
 
 // Home tab: Welcome screen with navigation title
 struct HomeView: View {
-    @EnvironmentObject var palaceStorage: PalaceStorage
+    @EnvironmentObject var trophyRoomStorage: TrophyRoomStorage
     
-    // Get the current palace color for theming
-    private var currentPalaceColor: Color {
-        return palaceStorage.getCurrentPalaceColor()
+    // Get the current trophy room color for theming
+    private var currentTrophyRoomColor: Color {
+        return trophyRoomStorage.getCurrentTrophyRoomColor()
     }
     
     var body: some View {
         NavigationStack {
             ZStack {
-                LinearGradient(gradient: Gradient(colors: [currentPalaceColor.opacity(0.13), currentPalaceColor.opacity(0.10), currentPalaceColor.opacity(0.05)]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                LinearGradient(gradient: Gradient(colors: [currentTrophyRoomColor.opacity(0.13), currentTrophyRoomColor.opacity(0.10), currentTrophyRoomColor.opacity(0.05)]), startPoint: .topLeading, endPoint: .bottomTrailing)
                     .ignoresSafeArea()
                 VStack(spacing: 32) {
                     // App Icon and Title
@@ -180,12 +173,12 @@ struct HomeView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 90, height: 90)
-                            .foregroundColor(currentPalaceColor)
+                            .foregroundColor(currentTrophyRoomColor)
                             .shadow(radius: 8)
                         Text("TotalRecard")
                             .font(.system(size: 38, weight: .bold, design: .rounded))
-                            .foregroundColor(currentPalaceColor)
-                            .shadow(color: currentPalaceColor.opacity(0.10), radius: 4, x: 0, y: 2)
+                            .foregroundColor(currentTrophyRoomColor)
+                            .shadow(color: currentTrophyRoomColor.opacity(0.10), radius: 4, x: 0, y: 2)
                     }
                     // Welcome Message
                     VStack(spacing: 8) {
@@ -201,7 +194,7 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: 14) {
                         Text("Available Games:")
                             .font(.headline)
-                            .foregroundColor(currentPalaceColor.opacity(0.8))
+                            .foregroundColor(currentTrophyRoomColor.opacity(0.8))
                         HStack(alignment: .top, spacing: 16) {
                             VStack(alignment: .leading, spacing: 6) {
                                 Label("Memory Match", systemImage: "rectangle.grid.2x2")
@@ -210,12 +203,12 @@ struct HomeView: View {
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                 Label("Sequence Recall", systemImage: "arrow.triangle.2.circlepath")
-                                    .foregroundColor(currentPalaceColor)
+                                    .foregroundColor(currentTrophyRoomColor)
                                 Text("Memorize and repeat the sequence of emojis.")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                 Label("Card Locator", systemImage: "eye.circle")
-                                    .foregroundColor(currentPalaceColor.opacity(0.7))
+                                    .foregroundColor(currentTrophyRoomColor.opacity(0.7))
                                 Text("Remember and tap the locations of hidden cards.")
                                     .font(.caption)
                                     .foregroundColor(.secondary)

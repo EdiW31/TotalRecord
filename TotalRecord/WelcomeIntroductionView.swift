@@ -79,16 +79,16 @@ struct WelcomeCarouselView: View {
             backgroundColor: .purple
         ),
         WelcomePage(
-            title: "Memory Palaces",
-            subtitle: "Build Your Own",
-            description: "Create personalized memory palaces to store and organize your memories effectively.",
-            imageName: "building.columns",
+            title: "Trophy Rooms",
+            subtitle: "Earn Your Achievements",
+            description: "Unlock trophy rooms and earn achievements as you master memory training games.",
+            imageName: "trophy.fill",
             backgroundColor: .blue
         ),
         WelcomePage(
             title: "Ready to Start",
             subtitle: "Let's Begin!",
-            description: "You're all set to begin your memory training journey. Let's create your first memory palaces!",
+            description: "You're all set to begin your memory training journey. Let's create your first trophy rooms!",
             imageName: "checkmark.circle",
             backgroundColor: .green
         )
@@ -96,7 +96,7 @@ struct WelcomeCarouselView: View {
     
     var body: some View {
         if showPalaceCreation {
-            PalaceCreationFlowView(hasCompletedFirstTimeSetup: $hasCompletedFirstTimeSetup)
+            TrophyRoomSetupView(hasCompletedFirstTimeSetup: $hasCompletedFirstTimeSetup)
         } else {
             VStack {
                 // Page indicator

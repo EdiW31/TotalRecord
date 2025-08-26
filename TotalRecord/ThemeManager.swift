@@ -1,16 +1,34 @@
 import SwiftUI
 
+// MARK: - Trophy Room Theme
+struct TrophyRoomTheme {
+    let primaryColor: Color      // Main trophy room color
+    let secondaryColor: Color    // Complementary color
+    let accentColor: Color       // High-contrast accent
+    let backgroundColor: Color    // Background variant
+    let textColor: Color         // Text color for readability
+    
+    // Default theme for when no trophy room is unlocked
+    static let defaultTheme = TrophyRoomTheme(
+        primaryColor: .purple,
+        secondaryColor: .purple.opacity(0.7),
+        accentColor: .orange,
+        backgroundColor: .purple.opacity(0.1),
+        textColor: .black
+    )
+}
+
 class ThemeManager: ObservableObject {
-    @Published var currentPalaceTheme: PalaceTheme
+    @Published var currentTrophyRoomTheme: TrophyRoomTheme
     
     init() {
         // Initialize with a default theme
-        self.currentPalaceTheme = PalaceTheme.defaultTheme
+        self.currentTrophyRoomTheme = TrophyRoomTheme.defaultTheme
     }
     
-    // Convert palace color string to complete theme
-    func generateThemeFromPalace(_ palace: Palace) -> PalaceTheme {
-        let primaryColor = Color(palace.color)
+    // Convert trophy room color string to complete theme
+    func generateThemeFromTrophyRoom(_ trophyRoom: TrophyRoom) -> TrophyRoomTheme {
+        let primaryColor = Color(trophyRoom.color)
         
         // Generate complementary colors based on primary
         let secondaryColor = primaryColor.opacity(0.7)
@@ -18,7 +36,7 @@ class ThemeManager: ObservableObject {
         
         // Choose accent color based on primary color for good contrast
         let accentColor: Color
-        switch palace.color {
+        switch trophyRoom.color {
         case "purple", "blue", "indigo":
             accentColor = .orange
         case "green", "teal":
@@ -33,9 +51,9 @@ class ThemeManager: ObservableObject {
         
         // Choose text color based on background brightness
         // For light backgrounds, use dark text; for dark backgrounds, use light text
-        let textColor: Color = palace.color == "yellow" || palace.color == "orange" ? .black : .white
+        let textColor: Color = trophyRoom.color == "yellow" || trophyRoom.color == "orange" ? .black : .white
         
-        return PalaceTheme(
+        return TrophyRoomTheme(
             primaryColor: primaryColor,
             secondaryColor: secondaryColor,
             accentColor: accentColor,
@@ -44,17 +62,17 @@ class ThemeManager: ObservableObject {
         )
     }
     
-    // Update theme based on available palaces
-    func updateThemeFromPalaces(_ palaces: [Palace]) {
-        if let firstPalace = palaces.first {
-            currentPalaceTheme = generateThemeFromPalace(firstPalace)
+    // Update theme based on available trophy rooms
+    func updateThemeFromTrophyRooms(_ trophyRooms: [TrophyRoom]) {
+        if let firstTrophyRoom = trophyRooms.first {
+            currentTrophyRoomTheme = generateThemeFromTrophyRoom(firstTrophyRoom)
         }
     }
     
     // Get current theme colors as computed properties
-    var primaryColor: Color { currentPalaceTheme.primaryColor }
-    var secondaryColor: Color { currentPalaceTheme.secondaryColor }
-    var accentColor: Color { currentPalaceTheme.accentColor }
-    var backgroundColor: Color { currentPalaceTheme.backgroundColor }
-    var textColor: Color { currentPalaceTheme.textColor }
+    var primaryColor: Color { currentTrophyRoomTheme.primaryColor }
+    var secondaryColor: Color { currentTrophyRoomTheme.secondaryColor }
+    var accentColor: Color { currentTrophyRoomTheme.accentColor }
+    var backgroundColor: Color { currentTrophyRoomTheme.backgroundColor }
+    var textColor: Color { currentTrophyRoomTheme.textColor }
 }
