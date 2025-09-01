@@ -41,7 +41,7 @@ TotalRecard is an iOS app designed to help users improve memory through card-bas
 ## 📁 Project Structure
 - `ContentView.swift` – Main entry point with TabView navigation
 - `Games/` – All game modes (MemoryMatchView, SequenceRecallView, etc.)
-- `MemoryPalace/` – Memory palace creation and recall views
+- `TrophyRoom/` – Trophy room system with achievements and progress tracking
 - `Models/` – Data models for games and palaces
 - `Assets.xcassets/` – App icons, images, and card assets
 - `.cursor/scratchpad.md` – Project planning, learning notes, and task breakdown
