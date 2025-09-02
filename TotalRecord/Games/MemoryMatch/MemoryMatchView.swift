@@ -14,6 +14,7 @@ struct MemoryMatchView: View {
     var onRestart: (() -> Void)? = nil
     let allEmojis = ["🍎", "🍌", "🥝", "🌶️", "🍇", "🍉", "🍓", "🍒"]
     let columns = [GridItem(.flexible()), GridItem(.flexible())]
+    let gameMode: GameMode
 
     @State private var cards: [Card]
     @State private var indexOfFaceUpCard: Int? = nil
@@ -23,8 +24,44 @@ struct MemoryMatchView: View {
     @State private var timerRun: Bool = true
     @State private var score: Int = 0
     @State private var gameFinished: Bool = false
+    @State private var lives: Int = 3
     private var totalTime: Int
+    @State private var pressedWrongCardCount: Int = 0
     @Environment(\.dismiss) private var dismiss
+    
+
+    
+    func startGame() {
+        // Reset game state
+        score = 0
+        gameFinished = false
+        isProcessing = false
+        indexOfFaceUpCard = nil
+        
+        if gameMode == .infinite {
+            lives = 3
+            timeLeft = 0 // No timer for infinite mode
+            timerRun = false
+            stopTimer() // Make sure timer is stopped
+            
+            // Initialize cards for infinite mode
+            let selectedEmojis = Array(allEmojis.shuffled().prefix(numberOfPairs))
+            let pairedEmojis = (selectedEmojis + selectedEmojis).shuffled()
+            cards = pairedEmojis.enumerated().map { Card(id: $0.offset, content: $0.element) }
+            
+        } else {
+            // Timed mode: Use timer as usual
+            lives = 0 // No lives for timed mode
+            timeLeft = totalTime
+            timerRun = true
+            startTimer()
+            
+            // Initialize cards for timed mode
+            let selectedEmojis = Array(allEmojis.shuffled().prefix(numberOfPairs))
+            let pairedEmojis = (selectedEmojis + selectedEmojis).shuffled()
+            cards = pairedEmojis.enumerated().map { Card(id: $0.offset, content: $0.element) }
+        }
+    }
 
     func startTimer() {
         timer?.invalidate()
@@ -41,7 +78,13 @@ struct MemoryMatchView: View {
     }
 
     func flipCard(at index: Int) {
-        guard !cards[index].isFaceUp, !cards[index].isMatched, !isProcessing, !gameFinished, timeLeft > 0 else { return } // un guard pentru a nu se genera elementul cand nu trebuie
+        let canFlip = !cards[index].isFaceUp && !cards[index].isMatched && !isProcessing && !gameFinished
+        
+        if gameMode == .timed {
+            guard canFlip && timeLeft > 0 else { return }
+        } else {
+            guard canFlip && lives > 0 else { return }
+        }
         if let firstIndex = indexOfFaceUpCard {
             cards[index].isFaceUp = true
             isProcessing = true
@@ -51,13 +94,31 @@ struct MemoryMatchView: View {
                 indexOfFaceUpCard = nil
                 isProcessing = false
                 self.score += 10
+                pressedWrongCardCount = 0
                 if cards.allSatisfy({ $0.isMatched }) {
-                    // Add a short delay before showing the winning screen
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    gameFinished = true
+                    if isGameFinished() {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            gameFinished = true
+                        }
                     }
                 }
             } else {
+                // Wrong card flip
+                if gameMode == .infinite {
+                    pressedWrongCardCount += 1
+                    if pressedWrongCardCount >= 3 {
+                        lives -= 1
+                        pressedWrongCardCount = 0
+                    }
+                    
+                    // Check if game should end due to no lives left
+                    if lives <= 0 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                            gameFinished = true
+                        }
+                    }
+                }
+                
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                     cards[firstIndex].isFaceUp = false
                     cards[index].isFaceUp = false
@@ -72,14 +133,33 @@ struct MemoryMatchView: View {
         }
     }
 
+    func startNewRound() {
+        let selectedEmojis = Array(allEmojis.shuffled().prefix(numberOfPairs))
+        let pairedEmojis = (selectedEmojis + selectedEmojis).shuffled()
+        cards = pairedEmojis.enumerated().map { Card(id: $0.offset, content: $0.element) }
+        indexOfFaceUpCard = nil
+        isProcessing = false
+    }
+    
     func isGameFinished() -> Bool {
-        self.timerRun = false
-        stopTimer()
-        return cards.allSatisfy { $0.isMatched }
+        if gameMode == .timed {
+            self.timerRun = false
+            stopTimer()
+            return cards.allSatisfy { $0.isMatched }
+        }
+        if gameMode == .infinite {
+            if cards.allSatisfy({ $0.isMatched }) {
+                startNewRound() 
+                return false 
+            }
+            return lives <= 0
+        }
+        return false
     }
 
-    init(numberOfPairs: Int, onRestart: (() -> Void)? = nil) {
+    init(numberOfPairs: Int, gameMode: GameMode, onRestart: (() -> Void)? = nil) {
         self.numberOfPairs = numberOfPairs
+        self.gameMode = gameMode
         self.onRestart = onRestart
         let selectedEmojis = Array(allEmojis.shuffled().prefix(numberOfPairs))
         let pairedEmojis = (selectedEmojis + selectedEmojis).shuffled()
@@ -119,21 +199,36 @@ struct MemoryMatchView: View {
                         .cornerRadius(500)
                     }
                     if !gameFinished {
-                        GeometryReader { geometry in
-                            ZStack(alignment: .leading) {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.white.opacity(0.25))
-                                    .frame(height: 8)
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(LinearGradient(gradient: Gradient(colors: [Color.green, Color.teal]), startPoint: .leading, endPoint: .trailing))
-                                    .frame(width: max(geometry.size.width * CGFloat(timeLeft) / CGFloat(totalTime), 0.0), height: 8)
-                                    .animation(.easeInOut(duration: 1.0), value: timeLeft)
+                        if gameMode == .timed {
+                            // Show timer progress bar for timed mode
+                            GeometryReader { geometry in
+                                ZStack(alignment: .leading) {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color.white.opacity(0.25))
+                                        .frame(height: 8)
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(LinearGradient(gradient: Gradient(colors: [Color.green, Color.teal]), startPoint: .leading, endPoint: .trailing))
+                                        .frame(width: max(geometry.size.width * CGFloat(timeLeft) / CGFloat(totalTime), 0.0), height: 8)
+                                        .animation(.easeInOut(duration: 1.0), value: timeLeft)
+                                }
                             }
+                            .frame(height: 8)
+                            .padding(.leading, 12)
+                            .padding(.trailing, 8)
+                            .frame(maxWidth: .infinity)
+                        } else {
+                            // Show lives for infinite mode
+                            HStack(spacing: 8) {
+                                ForEach(0..<3, id: \.self) { index in
+                                    Image(systemName: index < lives ? "heart.fill" : "heart")
+                                        .foregroundColor(index < lives ? .red : .gray)
+                                        .font(.system(size: 20))
+                                }
+                            }
+                            .padding(.leading, 12)
+                            .padding(.trailing, 8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .frame(height: 8)
-                        .padding(.leading, 12)
-                        .padding(.trailing, 8)
-                        .frame(maxWidth: .infinity)
                     } else {
                         Spacer()
                     }
@@ -164,7 +259,9 @@ struct MemoryMatchView: View {
                                             flipCard(at: idx)
                                         }
                                     }
-                                    .disabled(card.isFaceUp || card.isMatched || isProcessing || gameFinished || timeLeft == 0)
+                                    .disabled(card.isFaceUp || card.isMatched || isProcessing || gameFinished || 
+                                             (gameMode == .timed && timeLeft == 0) || 
+                                             (gameMode == .infinite && lives <= 0))
                             }
                         }
                         .padding(.horizontal, 4)
@@ -183,14 +280,15 @@ struct MemoryMatchView: View {
                 ConfettiOverlay(score: score, onRestart: onRestart)
                     .transition(.opacity.combined(with: .scale))
             }
-            if timeLeft == 0 && !gameFinished {
+            if (gameMode == .timed && timeLeft == 0 && !gameFinished) || 
+               (gameMode == .infinite && lives <= 0 && !gameFinished) {
                 GameLostView(score: score, onRestart: onRestart)
                     .transition(.opacity.combined(with: .scale))
             }
         }
         .background(Color.clear) // Ensure no default background is rendered
         .onAppear {
-            startTimer()
+            startGame()
             UITabBar.appearance().unselectedItemTintColor = UIColor.white
         }
         .onDisappear {
@@ -205,9 +303,15 @@ struct MemoryMatchView: View {
         .onChange(of: timeLeft) {
             if timeLeft == 0 {
                 stopTimer()
+                if gameMode == .timed {
+                    // In timed mode, game ends when time runs out
+                    gameFinished = true
+                }
             }
         }
-        .animation(.easeInOut(duration: 0.5), value: gameFinished || timeLeft == 0)
+        .animation(.easeInOut(duration: 0.5), value: gameFinished || 
+                   (gameMode == .timed && timeLeft == 0) || 
+                   (gameMode == .infinite && lives <= 0))
     }
 }
 

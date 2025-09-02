@@ -10,7 +10,7 @@ struct MemoryMatchSetupView: View {
             LinearGradient(gradient: Gradient(colors: [Color.green.opacity(0.18), Color.teal.opacity(0.12)]), startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
             if startGame {
-                MemoryMatchView(numberOfPairs: selectedPairs, onRestart: { startGame = false })
+                MemoryMatchView(numberOfPairs: selectedPairs, gameMode: selectedGameMode, onRestart: { startGame = false })
             } else {
                 VStack(spacing: 32) {
                     // Title and subtitle

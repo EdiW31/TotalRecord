@@ -70,9 +70,9 @@
 - **Accessibility**: Make sure screen readers can understand the options
 
 **Learning Questions:**
-- Where should the mode selection go in the existing UI?
-- How will you make the selection visually clear?
-- What happens if a user doesn't select a mode?
+- Where should the mode selection go in the existing UI? `They are right in the center of the screen`
+- How will you make the selection visually clear?  `I made sure that the buttons are well observable`
+- What happens if a user doesn't select a mode?  `The user will play the default one, the timed one`
 
 ---
 
