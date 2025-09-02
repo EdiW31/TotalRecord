@@ -10,7 +10,7 @@ struct SequenceRecallSetupView: View {
             LinearGradient(gradient: Gradient(colors: [Color.pink.opacity(0.18), Color.purple.opacity(0.10)]), startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
             if startGame {
-                SequenceRecallView(sequenceLength: $sequenceLength, onRestart: { startGame = false })
+                SequenceRecallView(sequenceLength: $sequenceLength, onRestart: { startGame = false }, gameMode: selectedGameMode)
             } else {
                 VStack(spacing: 32) {
                     // Title and subtitle

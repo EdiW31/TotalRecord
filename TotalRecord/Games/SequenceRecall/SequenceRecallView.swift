@@ -4,6 +4,7 @@ import SwiftUI
 struct SequenceRecallView: View {
     @Binding var sequenceLength: Int
     var onRestart: (() -> Void)? = nil
+    let gameMode: GameMode
 
     let allEmojis = ["🍎", "🍌", "🥝", "🌶️", "🍇", "🍉"]
 
@@ -19,6 +20,8 @@ struct SequenceRecallView: View {
     @State private var score: Int = 0
     @State private var timeRemaining: Int = 10
     @State private var level: Int = 1
+    @State private var lives: Int = 3
+    @State private var pressedWrongCardCount: Int = 0
 
     @State private var isGameOver: Bool = false
     @State private var isTimerRunning: Bool = false
@@ -64,6 +67,7 @@ struct SequenceRecallView: View {
                             .font(.title2)
                             .fontWeight(.semibold)
                     }
+                    if gameMode == .timed {
                     VStack(spacing: 2) {
                         Text("Time")
                             .font(.caption)
@@ -72,6 +76,21 @@ struct SequenceRecallView: View {
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(timeRemaining <= 3 ? .red : .primary)
+                    }
+                    }
+                    if gameMode == .infinite {
+                        VStack(spacing: 2) {
+                            HStack(spacing: 8) {
+                                    ForEach(0..<3, id: \.self) { index in
+                                        Image(systemName: index < lives ? "heart.fill" : "heart")
+                                            .foregroundColor(index < lives ? .red : .gray)
+                                            .font(.system(size: 20))
+                                    }
+                                }
+                                .padding(.leading, 12)
+                                .padding(.trailing, 8)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
                     Spacer()
                     Button(action: { onRestart?() }) {
@@ -156,7 +175,14 @@ struct SequenceRecallView: View {
         sequence = Array(0..<sequenceLength).map { _ in Int.random(in: 0..<allEmojis.count) }
         userInput = []
         showSequence = true
-        timeRemaining = 10
+        if gameMode == .timed {
+            timeRemaining = 10
+            lives = 0
+        }
+        if gameMode == .infinite {
+            lives = 3
+            timeRemaining = 0 
+        }
         startSequenceTimer()
     }
 
@@ -176,19 +202,45 @@ struct SequenceRecallView: View {
     func handleUserInput(index: Int) {
         if userInput.count < sequence.count {
             userInput.append(index)
-            for (user, correct) in zip(userInput, sequence) {
-                if user != correct {
-                    message = "Wrong! You lost."
+            
+            // Check if the current input matches the sequence so far
+            let currentInputIndex = userInput.count - 1
+            if userInput[currentInputIndex] != sequence[currentInputIndex] {
+                // Wrong input - reset the input row to empty
+                userInput = []
+                
+                if gameMode == .infinite {
+                    // Update lives counter
+                    pressedWrongCardCount += 1
+                    if pressedWrongCardCount >= 3 {
+                        pressedWrongCardCount = 0
+                        lives -= 1
+                    }
+                    
+                    // Check if game should end
+                    if lives <= 0 {
+                        message = "Game Over! No lives left."
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            message = ""
+                            //finish game
+                            isGameOver = true
+                        }
+                    } 
+                } else if gameMode == .timed {
+                    // In timed mode, wrong input ends the game
+                    message = "Wrong! Game Over."
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                         message = ""
-                        StartGame()
+                        isGameOver = true
                     }
-                    return
                 }
+                return
             }
-
+            
+            // If we've completed the sequence correctly
             if userInput.count == sequence.count {
                 message = "Congrats lvl \(level) is Done!"
+                pressedWrongCardCount = 0
                 sequenceLength += 1
                 level += 1
                 score += 15
