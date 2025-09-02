@@ -11,8 +11,9 @@ public struct TrophyRoom: Identifiable, Codable, Equatable {
     public var creationOrder: Int // Track creation order for consistent positioning
     public var isCompleted: Bool = false  // NEW: track room completion
     public var trophyIcon: String = "trophy.fill"  // NEW: trophy icon
+    public var gameType: GameType?  // NEW: which game this achievement is for
 
-    public init(id: UUID = UUID(), name: String, description: String = "", color: String = "purple", achievements: [Achievement] = [], isUnlocked: Bool = false, creationOrder: Int = 0, isCompleted: Bool = false, trophyIcon: String = "trophy.fill") {
+    public init(id: UUID = UUID(), name: String, description: String = "", color: String = "purple", achievements: [Achievement] = [], isUnlocked: Bool = false, creationOrder: Int = 0, isCompleted: Bool = false, trophyIcon: String = "trophy.fill", gameType: GameType? = nil) {
         self.id = id
         self.name = name
         self.description = description
@@ -22,6 +23,7 @@ public struct TrophyRoom: Identifiable, Codable, Equatable {
         self.creationOrder = creationOrder
         self.isCompleted = isCompleted
         self.trophyIcon = trophyIcon
+        self.gameType = gameType
     }
     
     // Implement Equatable
@@ -84,6 +86,7 @@ public struct TrophyScore: Codable {
     public var completedAchievements: Int = 0
     public var personalRecords: Int = 0
     public var overallProgress: Double = 0.0
+    public var gameType: GameType?  // which game this score is for
     
     // Calculate total score
     public mutating func calculateTotalScore() {

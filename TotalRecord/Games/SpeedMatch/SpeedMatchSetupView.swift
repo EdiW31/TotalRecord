@@ -5,6 +5,7 @@ struct SpeedMatchSetupView: View {
     @State private var selectedDifficulty: Difficulty = .easy
     @State private var rounds: Int = 15
     @State private var timePerCard: Double = 2.0
+    @State private var selectedGameMode: GameMode = .timed
 
     enum Difficulty: String, CaseIterable, Identifiable {
         case easy = "Easy"
@@ -44,6 +45,20 @@ struct SpeedMatchSetupView: View {
                         .foregroundColor(.blue)
                         .shadow(color: .blue.opacity(0.10), radius: 4, x: 0, y: 2)
                         .padding(.top, 40)
+                    HStack{
+                        Picker("Game Mode", selection: $selectedGameMode) {
+                            Text("Timed").tag(GameMode.timed)
+                            Text("Infinite").tag(GameMode.infinite)
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .padding(.horizontal)
+                        Text("Game Mode: \(selectedGameMode.rawValue)")
+                            .font(.headline)
+                            .foregroundColor(.blue)
+                            .padding(.horizontal)
+                            .frame(maxWidth: .infinity)
+                            .cornerRadius(10)
+                    }
                     VStack(alignment: .leading, spacing: 18) {
                         Text("Difficulty")
                             .font(.headline)

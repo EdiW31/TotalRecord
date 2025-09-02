@@ -3,6 +3,7 @@ import SwiftUI
 struct SequenceRecallSetupView: View {
     @State private var sequenceLength = 2
     @State private var startGame = false
+    @State private var selectedGameMode: GameMode = .timed
 
     var body: some View {
         ZStack {
@@ -29,6 +30,20 @@ struct SequenceRecallSetupView: View {
                             .multilineTextAlignment(.center)
                     }
                     // Card-like setup area
+                    HStack{
+                        Picker("Game Mode", selection: $selectedGameMode) {
+                            Text("Timed").tag(GameMode.timed)
+                            Text("Infinite").tag(GameMode.infinite)
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .padding(.horizontal)
+                        Text("Game Mode: \(selectedGameMode.rawValue)")
+                            .font(.headline)
+                            .foregroundColor(.pink)
+                            .padding(.horizontal)
+                            .frame(maxWidth: .infinity)
+                            .cornerRadius(10)
+                    }
                     ZStack {
                         RoundedRectangle(cornerRadius: 20)
                             .fill(Color.white.opacity(0.8))
