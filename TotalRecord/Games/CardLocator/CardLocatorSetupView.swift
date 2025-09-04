@@ -24,7 +24,7 @@ struct CardLocatorSetupView: View {
             LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.2), Color.purple.opacity(0.1)]), startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
             if startGame {
-                CardLocatorView(onRestart: { startGame = false }, numberOfTargets: selectedDifficulty.numberOfTargets)
+                CardLocatorView(onRestart: { startGame = false }, numberOfTargets: selectedDifficulty.numberOfTargets, gameMode: selectedGameMode)
             } else {
                 VStack(spacing: 32) {
                     // Title and subtitle
