@@ -15,8 +15,8 @@ struct SpeedMatchSetupView: View {
         var defaultRounds: Int {
             switch self {
             case .easy: return 10
-            case .medium: return 20
-            case .hard: return 30
+            case .medium: return 15
+            case .hard: return 20
             }
         }
         var defaultTime: Double {
@@ -36,6 +36,7 @@ struct SpeedMatchSetupView: View {
                 SpeedMatchView(
                     numberOfRounds: rounds,
                     timePerCard: timePerCard,
+                    gameMode: selectedGameMode,
                     onRestart: { startGame = false }
                 )
             } else {
@@ -52,6 +53,11 @@ struct SpeedMatchSetupView: View {
                         }
                         .pickerStyle(SegmentedPickerStyle())
                         .padding(.horizontal)
+                        .onChange(of: selectedGameMode) { newMode in
+                            if newMode == .timed {
+                                rounds = min(rounds, 20) // Cap at 20 rounds for timed mode
+                            }
+                        }
                         Text("Game Mode: \(selectedGameMode.rawValue)")
                             .font(.headline)
                             .foregroundColor(.blue)
@@ -69,13 +75,24 @@ struct SpeedMatchSetupView: View {
                         }
                         .pickerStyle(SegmentedPickerStyle())
                         .onChange(of: selectedDifficulty) { newDiff in
-                            rounds = newDiff.defaultRounds
+                            if selectedGameMode == .timed {
+                                rounds = min(newDiff.defaultRounds, 20) // Max 20 rounds for timed mode
+                            }
                             timePerCard = newDiff.defaultTime
                         }
                         HStack {
                             Text("Rounds: ")
-                            Stepper(value: $rounds, in: 5...50, step: 1) {
-                                Text("\(rounds)")
+                            if selectedGameMode == .timed {
+                                Picker("Rounds", selection: $rounds) {
+                                    Text("10").tag(10)
+                                    Text("15").tag(15)
+                                    Text("20").tag(20)
+                                }
+                                .pickerStyle(SegmentedPickerStyle())
+                            } else {
+                                Text("∞ (Infinite)")
+                                    .foregroundColor(.blue)
+                                    .fontWeight(.bold)
                             }
                         }
                         HStack {
