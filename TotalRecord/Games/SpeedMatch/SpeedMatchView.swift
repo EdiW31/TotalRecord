@@ -41,6 +41,7 @@ struct GameCardsSpeed: View {
 struct SpeedMatchView: View {
     let numberOfRounds: Int
     let timePerCard: Double
+    let gameMode: GameMode
     var onRestart: (() -> Void)? = nil
     let allEmojis = ["🍎", "🍌", "🥝", "🌶️", "🍇", "🍉", "🍓", "🍒"]
     
@@ -48,17 +49,30 @@ struct SpeedMatchView: View {
     @State private var previousCard: String = ""
     @State private var round: Int = 1
     @State private var score: Int = 0
+    @State private var lives: Int = 3
     @State private var showFeedback: Bool = false
     @State private var feedbackText: String = ""
     @State private var timer: Timer? = nil
     @State private var timeLeft: Double = 0
     @State private var gameFinished: Bool = false
     @State private var inputDisabled: Bool = false
+    @State private var gameTimer: Timer? = nil
+    @State private var totalGameTime: Double = 0
+    @State private var bestTime10: Double = UserDefaults.standard.double(forKey: "SpeedMatchBestTime10")
+    @State private var bestTime15: Double = UserDefaults.standard.double(forKey: "SpeedMatchBestTime15")
+    @State private var bestTime20: Double = UserDefaults.standard.double(forKey: "SpeedMatchBestTime20")
     @Environment(\.dismiss) private var dismiss
     
     func startRound() {
-        if round > numberOfRounds {
+        if gameMode == .timed && round > numberOfRounds {
+            gameTimer?.invalidate()
             gameFinished = true
+            
+            let currentBestTime = getBestTimeForRounds()
+            if currentBestTime == 0 || totalGameTime < currentBestTime {
+                saveBestTime(totalGameTime)
+            }
+            
             timer?.invalidate()
             return
         }
@@ -79,18 +93,60 @@ struct SpeedMatchView: View {
         }
     }
     
+    func getBestTimeForRounds() -> Double {
+        switch numberOfRounds {
+        case 10: return bestTime10
+        case 15: return bestTime15
+        case 20: return bestTime20
+        default: return 0
+        }
+    }
+    
+    func saveBestTime(_ time: Double) {
+        switch numberOfRounds {
+        case 10:
+            bestTime10 = time
+            UserDefaults.standard.set(time, forKey: "SpeedMatchBestTime10")
+        case 15:
+            bestTime15 = time
+            UserDefaults.standard.set(time, forKey: "SpeedMatchBestTime15")
+        case 20:
+            bestTime20 = time
+            UserDefaults.standard.set(time, forKey: "SpeedMatchBestTime20")
+        default: break
+        }
+    }
+    
     func handleAnswer(_ isMatch: Bool) {
         inputDisabled = true
         timer?.invalidate()
         let correct = (currentCard == previousCard)
-        if round == 1 { // No match possible on first round
+        
+        if round == 1 { 
             feedbackText = "First card!"
         } else if correct == isMatch {
             score += 1
             feedbackText = "✅ Correct!"
         } else {
-            feedbackText = "❌ Wrong!"
+            // Wrong answer
+            if gameMode == .infinite {
+                lives -= 1
+                if lives <= 0 {
+                    feedbackText = "❌ Game Over! No lives left."
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        gameFinished = true
+                    }
+                    return
+                } else {
+                    feedbackText = "❌ Wrong! Lives: \(lives)"
+                }
+            } else {
+                // Timed mode: add 2 seconds penalty
+                totalGameTime += 2.0
+                feedbackText = "❌ Wrong! +2s penalty"
+            }
         }
+        
         showFeedback = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             round += 1
@@ -100,7 +156,22 @@ struct SpeedMatchView: View {
     
     func handleTimeout() {
         inputDisabled = true
-        feedbackText = "⏰ Time's up!"
+        
+        if gameMode == .infinite {
+            lives -= 1
+            if lives <= 0 {
+                feedbackText = "⏰ Time's up! Game Over!"
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    gameFinished = true
+                }
+                return
+            } else {
+                feedbackText = "⏰ Time's up! Lives: \(lives)"
+            }
+        } else {
+            feedbackText = "⏰ Time's up!"
+        }
+        
         showFeedback = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             round += 1
@@ -111,7 +182,18 @@ struct SpeedMatchView: View {
     func restartGame() {
         round = 1
         score = 0
+        lives = 3
         gameFinished = false
+        totalGameTime = 0
+        
+        if gameMode == .timed {
+            // Start game timer for timed mode
+            gameTimer?.invalidate()
+            gameTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+                totalGameTime += 0.1
+            }
+        }
+        
         startRound()
     }
     
@@ -133,11 +215,21 @@ struct SpeedMatchView: View {
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.purple)
+                    if gameMode == .infinite {
+                        HStack(spacing: 4) {
+                            ForEach(0..<3, id: \.self) { index in
+                                Image(systemName: index < lives ? "heart.fill" : "heart")
+                                    .foregroundColor(index < lives ? .red : .gray)
+                                    .font(.system(size: 16))
+                            }
+                        }
+                        .padding(.leading, 8)
+                    }
                 }
                 .padding(.horizontal)
                 .padding(.top, 24)
                 Spacer().frame(height: 10)
-                Text("Round \(min(round, numberOfRounds))/\(numberOfRounds)")
+                Text(gameMode == .infinite ? "Round \(round)" : "Round \(min(round, numberOfRounds))/\(numberOfRounds)")
                     .font(.headline)
                     .foregroundColor(.blue)
                 ZStack {
@@ -149,7 +241,6 @@ struct SpeedMatchView: View {
                         Text("Does this card match the previous one?")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                        // Use GameCards from Components
                         GameCardsSpeed(emoji: currentCard, color: Color.blue)
                             .frame(width: 100, height: 100)
                         if round > 1 {
@@ -214,8 +305,19 @@ struct SpeedMatchView: View {
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundColor(.purple)
-                        Text("Final Score: \(score) / \(numberOfRounds)")
+                        Text(gameMode == .infinite ? "Final Score: \(score)" : "Final Score: \(score) / \(numberOfRounds)")
                             .font(.title2)
+                        if gameMode == .timed {
+                            Text(String(format: "Time: %.1fs", totalGameTime))
+                                .font(.title3)
+                                .foregroundColor(.blue)
+                            let bestTime = getBestTimeForRounds()
+                            if bestTime > 0 {
+                                Text(String(format: "Best Time: %.1fs", bestTime))
+                                    .font(.title3)
+                                    .foregroundColor(.green)
+                            }
+                        }
                         Button(action: { onRestart?(); restartGame() }) {
                             Text("Play Again")
                                 .font(.title2)

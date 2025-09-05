@@ -3,6 +3,7 @@ import SwiftUI
 struct CardLocatorSetupView: View {
     @State private var startGame = false
     @State private var selectedDifficulty: Difficulty = .easy
+    @State private var selectedGameMode: GameMode = .timed
 
     enum Difficulty: String, CaseIterable, Identifiable {
         case easy = "Easy"
@@ -23,7 +24,7 @@ struct CardLocatorSetupView: View {
             LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.2), Color.purple.opacity(0.1)]), startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
             if startGame {
-                CardLocatorView(onRestart: { startGame = false }, numberOfTargets: selectedDifficulty.numberOfTargets)
+                CardLocatorView(onRestart: { startGame = false }, numberOfTargets: selectedDifficulty.numberOfTargets, gameMode: selectedGameMode)
             } else {
                 VStack(spacing: 32) {
                     // Title and subtitle
@@ -42,8 +43,21 @@ struct CardLocatorSetupView: View {
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
                     }
-                    // Difficulty Picker
-                    ZStack {
+                    HStack{
+                        Picker("Game Mode", selection: $selectedGameMode) {
+                            Text("Timed").tag(GameMode.timed)
+                            Text("Infinite").tag(GameMode.infinite)
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .padding(.horizontal)
+                        Text("Game Mode: \(selectedGameMode.rawValue)")
+                            .font(.headline)
+                            .foregroundColor(.blue)
+                            .padding(.horizontal)
+                            .frame(maxWidth: .infinity)
+                            .cornerRadius(10)
+                    }                    
+                    ZStack { // Difficulty Picker
                         RoundedRectangle(cornerRadius: 20)
                             .fill(Color.white.opacity(0.8))
                             .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)

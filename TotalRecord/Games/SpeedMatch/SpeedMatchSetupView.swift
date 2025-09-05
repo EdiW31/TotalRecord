@@ -5,6 +5,7 @@ struct SpeedMatchSetupView: View {
     @State private var selectedDifficulty: Difficulty = .easy
     @State private var rounds: Int = 15
     @State private var timePerCard: Double = 2.0
+    @State private var selectedGameMode: GameMode = .timed
 
     enum Difficulty: String, CaseIterable, Identifiable {
         case easy = "Easy"
@@ -14,8 +15,8 @@ struct SpeedMatchSetupView: View {
         var defaultRounds: Int {
             switch self {
             case .easy: return 10
-            case .medium: return 20
-            case .hard: return 30
+            case .medium: return 15
+            case .hard: return 20
             }
         }
         var defaultTime: Double {
@@ -35,6 +36,7 @@ struct SpeedMatchSetupView: View {
                 SpeedMatchView(
                     numberOfRounds: rounds,
                     timePerCard: timePerCard,
+                    gameMode: selectedGameMode,
                     onRestart: { startGame = false }
                 )
             } else {
@@ -44,6 +46,25 @@ struct SpeedMatchSetupView: View {
                         .foregroundColor(.blue)
                         .shadow(color: .blue.opacity(0.10), radius: 4, x: 0, y: 2)
                         .padding(.top, 40)
+                    HStack{
+                        Picker("Game Mode", selection: $selectedGameMode) {
+                            Text("Timed").tag(GameMode.timed)
+                            Text("Infinite").tag(GameMode.infinite)
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .padding(.horizontal)
+                        .onChange(of: selectedGameMode) { newMode in
+                            if newMode == .timed {
+                                rounds = min(rounds, 20) // Cap at 20 rounds for timed mode
+                            }
+                        }
+                        Text("Game Mode: \(selectedGameMode.rawValue)")
+                            .font(.headline)
+                            .foregroundColor(.blue)
+                            .padding(.horizontal)
+                            .frame(maxWidth: .infinity)
+                            .cornerRadius(10)
+                    }
                     VStack(alignment: .leading, spacing: 18) {
                         Text("Difficulty")
                             .font(.headline)
@@ -54,13 +75,24 @@ struct SpeedMatchSetupView: View {
                         }
                         .pickerStyle(SegmentedPickerStyle())
                         .onChange(of: selectedDifficulty) { newDiff in
-                            rounds = newDiff.defaultRounds
+                            if selectedGameMode == .timed {
+                                rounds = min(newDiff.defaultRounds, 20) // Max 20 rounds for timed mode
+                            }
                             timePerCard = newDiff.defaultTime
                         }
                         HStack {
                             Text("Rounds: ")
-                            Stepper(value: $rounds, in: 5...50, step: 1) {
-                                Text("\(rounds)")
+                            if selectedGameMode == .timed {
+                                Picker("Rounds", selection: $rounds) {
+                                    Text("10").tag(10)
+                                    Text("15").tag(15)
+                                    Text("20").tag(20)
+                                }
+                                .pickerStyle(SegmentedPickerStyle())
+                            } else {
+                                Text("∞ (Infinite)")
+                                    .foregroundColor(.blue)
+                                    .fontWeight(.bold)
                             }
                         }
                         HStack {

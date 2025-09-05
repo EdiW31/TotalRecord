@@ -3,13 +3,14 @@ import SwiftUI
 struct MemoryMatchSetupView: View {
     @State private var selectedPairs = 2
     @State private var startGame = false
+    @State private var selectedGameMode: GameMode = .timed
 
     var body: some View {
         ZStack {
             LinearGradient(gradient: Gradient(colors: [Color.green.opacity(0.18), Color.teal.opacity(0.12)]), startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
             if startGame {
-                MemoryMatchView(numberOfPairs: selectedPairs, onRestart: { startGame = false })
+                MemoryMatchView(numberOfPairs: selectedPairs, gameMode: selectedGameMode, onRestart: { startGame = false })
             } else {
                 VStack(spacing: 32) {
                     // Title and subtitle
@@ -29,6 +30,20 @@ struct MemoryMatchSetupView: View {
                             .multilineTextAlignment(.center)
                     }
                     // Pairs Picker
+                    HStack{
+                        Picker("Game Mode", selection: $selectedGameMode) {
+                            Text("Timed").tag(GameMode.timed)
+                            Text("Infinite").tag(GameMode.infinite)
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .padding(.horizontal)
+                        Text("Game Mode: \(selectedGameMode.rawValue)")
+                            .font(.headline)
+                            .foregroundColor(.green)
+                            .padding(.horizontal)
+                            .frame(maxWidth: .infinity)
+                            .cornerRadius(10)
+                    }
                     ZStack {
                         RoundedRectangle(cornerRadius: 20)
                             .fill(Color.white.opacity(0.8))
