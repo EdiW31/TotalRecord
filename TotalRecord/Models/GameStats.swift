@@ -1,6 +1,5 @@
 import SwiftUI
 
-
 struct GameStats: Codable {
     let score: Int
     let timeTaken: TimeInterval

@@ -1,6 +1,4 @@
 import SwiftUI
-
-// Copied GameCards view from Components/AppGameCards.swift for local use
 struct GameCardsSpeed: View {
     let emoji: String
     var color: Color
@@ -61,12 +59,20 @@ struct SpeedMatchView: View {
     @State private var bestTime10: Double = UserDefaults.standard.double(forKey: "SpeedMatchBestTime10")
     @State private var bestTime15: Double = UserDefaults.standard.double(forKey: "SpeedMatchBestTime15")
     @State private var bestTime20: Double = UserDefaults.standard.double(forKey: "SpeedMatchBestTime20")
+    
+    //Statistics tracking
+    @State private var gameStartTime: Date = Date()
+    @State private var roundsCompleted: Int = 0
+    @State private var showFinishPage: Bool = false
+    @State private var gameWon: Bool = false
     @Environment(\.dismiss) private var dismiss
     
     func startRound() {
         if gameMode == .timed && round > numberOfRounds {
             gameTimer?.invalidate()
             gameFinished = true
+            gameWon = true
+            roundsCompleted = numberOfRounds
             
             let currentBestTime = getBestTimeForRounds()
             if currentBestTime == 0 || totalGameTime < currentBestTime {
@@ -74,6 +80,7 @@ struct SpeedMatchView: View {
             }
             
             timer?.invalidate()
+            showFinishGamePage()
             return
         }
         previousCard = currentCard
@@ -133,8 +140,9 @@ struct SpeedMatchView: View {
                 lives -= 1
                 if lives <= 0 {
                     feedbackText = "❌ Game Over! No lives left."
+                    gameWon = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                        gameFinished = true
+                        showFinishGamePage()
                     }
                     return
                 } else {
@@ -150,6 +158,7 @@ struct SpeedMatchView: View {
         showFeedback = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             round += 1
+            roundsCompleted = round - 1
             startRound()
         }
     }
@@ -161,8 +170,9 @@ struct SpeedMatchView: View {
             lives -= 1
             if lives <= 0 {
                 feedbackText = "⏰ Time's up! Game Over!"
+                gameWon = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    gameFinished = true
+                    showFinishGamePage()
                 }
                 return
             } else {
@@ -175,6 +185,7 @@ struct SpeedMatchView: View {
         showFeedback = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             round += 1
+            roundsCompleted = round - 1
             startRound()
         }
     }
@@ -185,6 +196,12 @@ struct SpeedMatchView: View {
         lives = 3
         gameFinished = false
         totalGameTime = 0
+        
+        // Reset statistics
+        gameStartTime = Date()
+        roundsCompleted = 0
+        showFinishPage = false
+        gameWon = false
         
         if gameMode == .timed {
             // Start game timer for timed mode
@@ -197,10 +214,33 @@ struct SpeedMatchView: View {
         startRound()
     }
     
+    func createGameStats() -> GameStats {
+        let totalTime = Date().timeIntervalSince(gameStartTime)
+        let stats = GameStats(
+            score: score,
+            timeTaken: totalTime,
+            extraStat: roundsCompleted,
+            gameMode: gameMode,
+            gameType: .speedMatch,
+            date: Date()
+        )
+        
+        // Save best scores
+        ScoreStorage.shared.setBestScore(for: .speedMatch, mode: gameMode, score: score)
+        ScoreStorage.shared.setBestTime(for: .speedMatch, mode: gameMode, time: totalTime)
+        
+        return stats
+    }
+    
+    func showFinishGamePage() {
+        showFinishPage = true
+    }
+    
     var body: some View {
         ZStack {
             LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.13), Color.purple.opacity(0.10)]), startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
+            
             VStack(spacing: 24) {
                 HStack {
                     Button(action: { dismiss() }) {
@@ -331,6 +371,22 @@ struct SpeedMatchView: View {
                         }
                     }
                 }
+            }
+            
+            // Finish Game Page
+            if showFinishPage {
+                FinishGamePage(
+                    stats: createGameStats(),
+                    gameWon: gameWon,
+                    onPlayAgain: {
+                        showFinishPage = false
+                        restartGame()
+                    },
+                    onMainMenu: {
+                        dismiss()
+                    }
+                )
+                .transition(.opacity.combined(with: .scale))
             }
         }
         .onAppear {

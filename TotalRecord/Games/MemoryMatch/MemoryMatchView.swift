@@ -29,20 +29,31 @@ struct MemoryMatchView: View {
     @State private var pressedWrongCardCount: Int = 0
     @Environment(\.dismiss) private var dismiss
     
+    // Statistics tracking
+    @State private var gameStartTime: Date = Date()
+    @State private var correctStreaks: Int = 0
+    @State private var currentStreak: Int = 0
+    @State private var showFinishPage: Bool = false
+    
 
     
     func startGame() {
-        // Reset game state
         score = 0
         gameFinished = false
         isProcessing = false
         indexOfFaceUpCard = nil
+        showFinishPage = false
+        
+        // Reset statistics
+        gameStartTime = Date()
+        correctStreaks = 0
+        currentStreak = 0
         
         if gameMode == .infinite {
             lives = 3
-            timeLeft = 0 // No timer for infinite mode
+            timeLeft = 0 
             timerRun = false
-            stopTimer() // Make sure timer is stopped
+            stopTimer() 
             
             // Initialize cards for infinite mode
             let selectedEmojis = Array(allEmojis.shuffled().prefix(numberOfPairs))
@@ -50,13 +61,11 @@ struct MemoryMatchView: View {
             cards = pairedEmojis.enumerated().map { Card(id: $0.offset, content: $0.element) }
             
         } else {
-            // Timed mode: Use timer as usual
             lives = 0 // No lives for timed mode
             timeLeft = totalTime
             timerRun = true
             startTimer()
             
-            // Initialize cards for timed mode
             let selectedEmojis = Array(allEmojis.shuffled().prefix(numberOfPairs))
             let pairedEmojis = (selectedEmojis + selectedEmojis).shuffled()
             cards = pairedEmojis.enumerated().map { Card(id: $0.offset, content: $0.element) }
@@ -95,15 +104,21 @@ struct MemoryMatchView: View {
                 isProcessing = false
                 self.score += 10
                 pressedWrongCardCount = 0
+                currentStreak += 1
                 if cards.allSatisfy({ $0.isMatched }) {
                     if isGameFinished() {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                             gameFinished = true
+                            showFinishGamePage()
                         }
                     }
                 }
             } else {
-                // Wrong card flip
+                if currentStreak > 0 {
+                    correctStreaks += currentStreak
+                    currentStreak = 0
+                }
+                
                 if gameMode == .infinite {
                     pressedWrongCardCount += 1
                     if pressedWrongCardCount >= 3 {
@@ -115,6 +130,7 @@ struct MemoryMatchView: View {
                     if lives <= 0 {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                             gameFinished = true
+                            showFinishGamePage()
                         }
                     }
                 }
@@ -155,6 +171,28 @@ struct MemoryMatchView: View {
             return lives <= 0
         }
         return false
+    }
+    
+    func createGameStats() -> GameStats {
+        let totalTime = Date().timeIntervalSince(gameStartTime)
+        let stats = GameStats(
+            score: score,
+            timeTaken: totalTime,
+            extraStat: correctStreaks + currentStreak, // Include current streak if game ends
+            gameMode: gameMode,
+            gameType: .memoryMatch,
+            date: Date()
+        )
+        
+        // Save best scores
+        ScoreStorage.shared.setBestScore(for: .memoryMatch, mode: gameMode, score: score)
+        ScoreStorage.shared.setBestTime(for: .memoryMatch, mode: gameMode, time: totalTime)
+        
+        return stats
+    }
+    
+    func showFinishGamePage() {
+        showFinishPage = true
     }
 
     init(numberOfPairs: Int, gameMode: GameMode, onRestart: (() -> Void)? = nil) {
@@ -275,15 +313,19 @@ struct MemoryMatchView: View {
                 .animation(.easeInOut(duration: 0.5), value: gameFinished)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            // Overlays: these are now at the root ZStack level, above all content
-            if gameFinished {
-                ConfettiOverlay(score: score, onRestart: onRestart)
-                    .transition(.opacity.combined(with: .scale))
-            }
-            if (gameMode == .timed && timeLeft == 0 && !gameFinished) || 
-               (gameMode == .infinite && lives <= 0 && !gameFinished) {
-                GameLostView(score: score, onRestart: onRestart)
-                    .transition(.opacity.combined(with: .scale))
+            // Finish Game Page
+            if showFinishPage {
+                FinishGamePage(
+                    stats: createGameStats(),
+                    onPlayAgain: { 
+                        showFinishPage = false
+                        startGame()
+                    },
+                    onMainMenu: { 
+                        dismiss()
+                    }
+                )
+                .transition(.opacity.combined(with: .scale))
             }
         }
         .background(Color.clear) // Ensure no default background is rendered
@@ -306,6 +348,7 @@ struct MemoryMatchView: View {
                 if gameMode == .timed {
                     // In timed mode, game ends when time runs out
                     gameFinished = true
+                    showFinishGamePage()
                 }
             }
         }
