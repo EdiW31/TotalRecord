@@ -1,6 +1,7 @@
 import SwiftUI
 import Foundation
 
+
 class ScoreStorage: ObservableObject{
     static let shared = ScoreStorage()
     private let userDefaults = UserDefaults.standard
@@ -33,36 +34,23 @@ class ScoreStorage: ObservableObject{
     
     // GET functions
 
-    func getBestScore(for gameType: GameType, mode: GameMode) -> Int{
+     private func getSavedStats(for gameType: GameType, mode: GameMode) -> GameStats? {
         let key = "\(gameType.rawValue)_\(mode.rawValue)_best"
         let decoder = JSONDecoder()
-        if let savedStats = userDefaults.data(forKey: key){
-            if let decodedStats = try? decoder.decode(GameStats.self, from: savedStats){
-                return decodedStats.score
+        if let savedStats = userDefaults.data(forKey: key) {
+            if let decodedStats = try? decoder.decode(GameStats.self, from: savedStats) {
+                return decodedStats
             }
         }
-        return 0
+        return nil
     }
-
-    func getBestTime(for gameType: GameType, mode: GameMode) -> TimeInterval{
-        let key = "\(gameType.rawValue)_\(mode.rawValue)_best"
-        let decoder = JSONDecoder()
-        if let savedStats = userDefaults.data(forKey: key){
-            if let decodedStats = try? decoder.decode(GameStats.self, from: savedStats){
-                return decodedStats.timeTaken
-            }
-        }
-        return 0
+    func getBestScore(for gameType: GameType, mode: GameMode) -> Int {
+        return getSavedStats(for: gameType, mode: mode)?.score ?? 0
     }
-
-    func getBestExtraStat(for gameType: GameType, mode: GameMode) -> Int{
-        let key = "\(gameType.rawValue)_\(mode.rawValue)_best"
-        let decoder = JSONDecoder()
-        if let savedStats = userDefaults.data(forKey: key){
-            if let decodedStats = try? decoder.decode(GameStats.self, from: savedStats){
-                return decodedStats.extraStat
-            }
-        }
-        return 0
+    func getBestTime(for gameType: GameType, mode: GameMode) -> TimeInterval {
+        return getSavedStats(for: gameType, mode: mode)?.timeTaken ?? 0
+    }
+    func getBestExtraStat(for gameType: GameType, mode: GameMode) -> Int {
+        return getSavedStats(for: gameType, mode: mode)?.extraStat ?? 0
     }
 }

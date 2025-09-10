@@ -37,7 +37,7 @@ struct CardLocatorView: View {
             LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.18), Color.purple.opacity(0.18)]), startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
             
-            VStack(spacing: 24)
+            VStack(spacing: 24) {
                 VStack(spacing: 4) {
                     Text("Card Locator")
                         .font(.system(size: 38, weight: .bold, design: .rounded))
@@ -127,6 +127,7 @@ struct CardLocatorView: View {
                                                             return Color.purple 
                                                         } else {
                                                             return Color.blue 
+                                                        }
                                                     }()
                                                     GameCards(
                                                         emoji: showEmoji ? allEmojis[index] : "?",
