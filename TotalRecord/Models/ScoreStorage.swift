@@ -13,7 +13,6 @@ class ScoreStorage: ObservableObject{
             userDefaults.set(encoded, forKey: key)
         }
     }
-
     func setBestScore(for gameType: GameType, mode: GameMode, score: Int){
         let key = "\(gameType.rawValue)_\(mode.rawValue)_best"
         let currentBest = getBestScore(for: gameType, mode: mode)
@@ -22,7 +21,6 @@ class ScoreStorage: ObservableObject{
             saveScore(stats)
         }
     }
-
     func setBestTime(for gameType: GameType, mode: GameMode, time: TimeInterval){
         let key = "\(gameType.rawValue)_\(mode.rawValue)_best"
         let currentBest = getBestTime(for: gameType, mode: mode)
@@ -34,7 +32,7 @@ class ScoreStorage: ObservableObject{
     
     // GET functions
 
-     private func getSavedStats(for gameType: GameType, mode: GameMode) -> GameStats? {
+    private func getSavedStats(for gameType: GameType, mode: GameMode) -> GameStats? {
         let key = "\(gameType.rawValue)_\(mode.rawValue)_best"
         let decoder = JSONDecoder()
         if let savedStats = userDefaults.data(forKey: key) {

@@ -11,26 +11,35 @@ struct CardLocatorView: View {
     let gridColumns = 3
     let allEmojis = ["🍎", "🍌", "🌶️", "🍇", "🍉", "🍓", "🍒", "🍍", "🍍", "🍉", "🍓", "🍒"] // 12 emojis for 4x3
 
+    // Int variables
     @State private var targetCards: [Int] = [] // store indices of target cards
-    @State private var memorizationPhase = true
-    @State private var revealed: [Bool] = Array(repeating: false, count: 12)
-    @State private var feedback: [Color?] = Array(repeating: nil, count: 12)
-    @State private var message: String = ""
-    @State private var seeCardsTimer: Timer? = nil
-    @State private var waitingTimer: Timer? = nil
-    @State private var waitingPhase: Bool = false
-    @State private var waitingTimeRemaining: Int = 10
     @State private var score: Int = 0
     @State private var lives: Int = 3
     @State private var wrongCardCount: Int = 0
+    @State private var waitingTimeRemaining: Int = 10
+
+    // Bool variables
+    @State private var memorizationPhase = true
+    @State private var revealed: [Bool] = Array(repeating: false, count: 12)    
+    @State private var waitingPhase: Bool = false
     @State private var GameFinished = false;
-    
-    //Statistics tracking
+
+    // String variables
+    @State private var message: String = ""
+
+    // Other variables
+    @State private var seeCardsTimer: Timer? = nil
+    @State private var waitingTimer: Timer? = nil
+    @State private var feedback: [Color?] = Array(repeating: nil, count: 12)
     @State private var gameStartTime: Date = Date()
+    @Environment(\.dismiss) private var dismiss
+    
+    //Statistics tracking variables
     @State private var targetsFound: Int = 0
     @State private var showFinishPage: Bool = false
     @State private var gameWon: Bool = false
-    @Environment(\.dismiss) private var dismiss
+
+    
 
     var body: some View {
         ZStack {

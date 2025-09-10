@@ -12,6 +12,7 @@ struct SequenceRecallView: View {
         GridItem(.flexible())
     ]
 
+    // Int Variables
     @State private var sequence: [Int] = []
     @State private var userInput: [Int] = []
 
@@ -20,16 +21,20 @@ struct SequenceRecallView: View {
     @State private var level: Int = 1
     @State private var lives: Int = 3
     @State private var pressedWrongCardCount: Int = 0
+    @State private var timeForRounds: Int = 4
+    @State private var nrOfRoundsToWin: Int = 3
 
+    // Bool Variables
     @State private var isGameOver: Bool = false
     @State private var isTimerRunning: Bool = false
     @State private var isGameStarted: Bool = false
     @State private var showSequence: Bool = true;
 
+    // Other Variables
     @State private var timer: Timer?    
     @State private var message: String = ""
 
-    //Statistics tracking
+    //Statistics tracking variables
     @State private var gameStartTime: Date = Date()
     @State private var levelsCompleted: Int = 0
     @State private var showFinishPage: Bool = false
@@ -208,7 +213,7 @@ struct SequenceRecallView: View {
 
         timeTaken = 0
         if gameMode == .timed {
-            timeRemaining = 4 
+            timeRemaining = timeForRounds 
             lives = 0
             startGameTimer()
         }
@@ -312,7 +317,7 @@ struct SequenceRecallView: View {
                 score += 15
                 levelsCompleted += 1
                 
-                if gameMode == .timed && level > 3 {
+                if gameMode == .timed && level > nrOfRoundsToWin {
                     gameWon = true
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                         message = ""

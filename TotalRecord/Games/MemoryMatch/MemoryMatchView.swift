@@ -2,12 +2,7 @@ import SwiftUI
 import UIKit
 
 // Model for a single card, aici initalizam si starile, isfaceup si ismatched
-struct Card: Identifiable {
-    let id: Int
-    let content: String
-    var isFaceUp: Bool = false
-    var isMatched: Bool = false
-}
+
 
 struct MemoryMatchView: View {
     let numberOfPairs: Int
@@ -17,19 +12,24 @@ struct MemoryMatchView: View {
     let gameMode: GameMode
 
     @State private var cards: [Card]
-    @State private var indexOfFaceUpCard: Int? = nil
-    @State private var isProcessing: Bool = false
-    @State private var timeLeft: Int
     @State private var timer: Timer? = nil
-    @State private var timerRun: Bool = true
+    @Environment(\.dismiss) private var dismiss
+
+    // Int Variables
+    @State private var indexOfFaceUpCard: Int? = nil
+    @State private var timeLeft: Int
     @State private var score: Int = 0
-    @State private var gameFinished: Bool = false
+    @State private var pressedWrongCardCount: Int = 0
+    @State private var pressedWrongCardCount: Int = 0
     @State private var lives: Int = 3
     private var totalTime: Int
-    @State private var pressedWrongCardCount: Int = 0
-    @Environment(\.dismiss) private var dismiss
+
+    // Bool Variables
+    @State private var isProcessing: Bool = false
+    @State private var timerRun: Bool = true
+    @State private var gameFinished: Bool = false
     
-    // Statistics tracking
+    // Statistics tracking variables
     @State private var gameStartTime: Date = Date()
     @State private var correctStreaks: Int = 0
     @State private var currentStreak: Int = 0
@@ -355,47 +355,6 @@ struct MemoryMatchView: View {
         .animation(.easeInOut(duration: 0.5), value: gameFinished || 
                    (gameMode == .timed && timeLeft == 0) || 
                    (gameMode == .infinite && lives <= 0))
-    }
-}
-
-struct MemoryGameCard: View {
-    let card: Card
-    var body: some View {
-        ZStack {
-            if card.isFaceUp || card.isMatched {
-                // Show emoji on a yellow-themed background
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(LinearGradient(gradient: Gradient(colors: [Color.yellow.opacity(0.92), Color.orange.opacity(0.85)]), startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .shadow(radius: 8)
-                // Dashed border
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(style: StrokeStyle(lineWidth: 2, dash: [7]))
-                    .foregroundColor(Color.black.opacity(0.3))
-                    .padding(6)
-                Text(card.content)
-                    .font(.system(size: 54))
-            } else {
-                // Show the card background image when face down
-                Image("cardsbackground")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 180, height: 140)
-                    .cornerRadius(20)
-                    .clipped()
-                    .shadow(radius: 8)
-                // Dashed border
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(style: StrokeStyle(lineWidth: 2, dash: [7]))
-                    .foregroundColor(Color.black.opacity(0.3))
-                    .padding(6)
-            }
-        }
-        .frame(width: 180, height: 140)
-        .rotation3DEffect(
-            .degrees(card.isFaceUp || card.isMatched ? 0 : 180),
-            axis: (x: 0, y: 1, z: 0)
-        )
-        .animation(.easeInOut, value: card.isFaceUp)
     }
 }
 
