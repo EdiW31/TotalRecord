@@ -26,6 +26,7 @@ struct MemoryMatchView: View {
     @State private var score: Int = 0
     @State private var pressedWrongCardCount: Int = 0
     @State private var lives: Int = 3
+    @State private var correctMatches: Int = 0
     private var totalTime: Int
 
     // Bool Variables
@@ -109,6 +110,7 @@ struct MemoryMatchView: View {
                 self.score += 10
                 pressedWrongCardCount = 0
                 currentStreak += 1
+                correctMatches += 1
                 if cards.allSatisfy({ $0.isMatched }) {
                     if isGameFinished() {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -196,6 +198,20 @@ struct MemoryMatchView: View {
     }
     
     func showFinishGamePage() {
+        // when the game is finished, track the achievements and show the finish page
+        let accuracy = Double(correctMatches) / Double(numberOfPairs) * 100
+        let extraStat = correctStreaks + currentStreak // Total streaks achieved
+        let timeTaken = Date().timeIntervalSince(gameStartTime)
+        
+        // Use shared instance
+        TrophyRoomStorage.shared.trackGameCompletion(
+            gameType: .memoryMatch,
+            score: score,
+            time: timeTaken,
+            accuracy: accuracy,
+            extraStat: extraStat
+        )
+        
         showFinishPage = true
     }
 

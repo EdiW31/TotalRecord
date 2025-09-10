@@ -102,9 +102,40 @@ public struct TrophyScore: Codable {
 }
 
 public class TrophyRoomStorage: ObservableObject {
+    public static let shared = TrophyRoomStorage()
     @Published public var trophyRooms: [TrophyRoom] = []
     @Published public var currentTrophyRoom: TrophyRoom?
     @Published public var trophyScore: TrophyScore = TrophyScore()
+    
+    func trackGameCompletion(gameType: GameType, score: Int, time: TimeInterval, accuracy: Double, extraStat: Int) {
+        trackGamePerformance(gameType: gameType, score: Double(score), time: time, accuracy: accuracy)
+        updateExtraStats(gameType: gameType, extraStat: extraStat)
+        checkRoomCompletions() // verifica daca camera este completata
+    }
+
+    private func updateExtraStats(gameType: GameType, extraStat: Int) {
+        // Update milestone achievements for current room
+        if let currentRoom = currentTrophyRoom {
+            for (index, achievement) in currentRoom.achievements.enumerated() {
+                if achievement.gameType == gameType && achievement.type == .milestone {
+                    var updatedAchievement = achievement
+                    updatedAchievement.currentValue = Double(extraStat)
+                    
+                    if updatedAchievement.currentValue >= updatedAchievement.targetValue && !updatedAchievement.isCompleted {
+                        updatedAchievement.isCompleted = true
+                        updatedAchievement.completedDate = Date()
+                    }
+                    
+                    // Update in storage
+                    if let roomIndex = trophyRooms.firstIndex(where: { $0.id == currentRoom.id }) {
+                        trophyRooms[roomIndex].achievements[index] = updatedAchievement
+                        saveAchievements(for: trophyRooms[roomIndex])
+                    }
+                }
+            }
+        }
+    }
+
     
     // AppStorage keys for each trophy room
     private func trophyRoomKey(for id: UUID, property: String) -> String {
@@ -114,15 +145,12 @@ public class TrophyRoomStorage: ObservableObject {
     // Load trophy rooms from AppStorage
     public func loadTrophyRooms() {
         if trophyRooms.isEmpty {
-            // Load saved trophy rooms from UserDefaults
             loadSavedTrophyRooms()
             
-            // If no saved trophy rooms exist, create an empty array
             if trophyRooms.isEmpty {
                 trophyRooms = []
             }
             
-            // Ensure first trophy room is unlocked if any exist
             if let firstTrophyRoom = trophyRooms.first {
                 if !firstTrophyRoom.isUnlocked {
                     trophyRooms[0].isUnlocked = true
@@ -130,21 +158,18 @@ public class TrophyRoomStorage: ObservableObject {
                 }
             }
             
-            // Load current trophy room
             loadCurrentTrophyRoom()
         }
     }
     
-    // Add a new trophy room
     public func addTrophyRoom(_ trophyRoom: TrophyRoom) {
-        // Assign creation order based on current count
         var newTrophyRoom = trophyRoom
         newTrophyRoom.creationOrder = trophyRooms.count
         
         trophyRooms.append(newTrophyRoom)
         saveTrophyRoom(newTrophyRoom)
         
-        // Unlock it if it's the first trophy room
+        // unlock for the first trophy room
         if trophyRooms.count == 1 {
             newTrophyRoom.isUnlocked = true
             saveTrophyRoomUnlockStatus(newTrophyRoom)
@@ -166,17 +191,15 @@ public class TrophyRoomStorage: ObservableObject {
     }
 
     public func canUnlockTrophyRoom(_ trophyRoom: TrophyRoom) -> Bool {
-        // Get the index of this trophy room
         guard let currentIndex = trophyRooms.firstIndex(where: { $0.id == trophyRoom.id }) else { 
             return false
         }
         
-        // First trophy room is always unlockable
         if currentIndex == 0 { 
             return true 
         }
         
-        // Check if previous trophy room is completed
+        // check for the previous room if it is completed
         let previousTrophyRoom = trophyRooms[currentIndex - 1]
         let isCompleted = isTrophyRoomCompleted(previousTrophyRoom)
         return isCompleted

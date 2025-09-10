@@ -4,50 +4,58 @@
 Create a working achievements system that tracks game progress and unlocks new rooms when completed.
 
 ## 📋 **What You Have**
-- ✅ 5 Trophy Rooms (pre-created)
-- ✅ Achievement models with progress tracking
-- ✅ 4 Games: Memory Match, Speed Match, Sequence Recall, Card Locator
-- ✅ ScoreStorage for game performance
-- ✅ TrophyRoomStorage for room management
+- ✅ **TrophyRoomModels.swift** - Complete data models with Achievement, TrophyRoom, GameType, AchievementType
+- ✅ **TrophyRoomListView.swift** - UI for viewing rooms and achievements
+- ✅ **TrophyRoomStorage** - Room management with achievement tracking methods
+- ✅ **4 Games**: Memory Match, Speed Match, Sequence Recall, Card Locator
+- ✅ **ScoreStorage** - Game performance tracking
+- ✅ **Achievement Types**: Speed, Accuracy, Completion, Milestone, Record
+- ✅ **Game Types**: Memory Match, Sequence Recall, Card Locator, Speed Match, General
 
 ## 🏗️ **What You Need to Build**
 
-### **1. Achievement Manager**
-- Track game completion and update achievements
-- Check when room is completed
-- Reset data when room is completed
-- Unlock next room
+### **1. Enhance Existing TrophyRoomStorage**
+- Use existing `trackGamePerformance()` method
+- Improve `updateAchievementProgress()` logic
+- Add room completion checking
+- Add data reset when room is completed
 
 ### **2. Game Integration**
 - Add achievement tracking to each game's finish method
+- Use existing `TrophyRoomStorage.trackGamePerformance()`
 - Pass game stats (score, time, accuracy, extra stats)
 
 ### **3. Pre-defined Achievements for 5 Rooms**
+- Use existing Achievement model structure
+- Set up achievements with proper GameType and AchievementType
+- Add to existing room creation system
 
 #### **Room 1: "Memory Foundations" (Easy)**
-**Memory Match:**
-- Complete 3 games
-- Get 70% accuracy
-- Complete in under 3 minutes
-- Match 2 pairs in a row
+```swift
+// Memory Match Achievements
+Achievement(name: "Memory Master 1", description: "Complete 3 Memory Match games", type: .completion, targetValue: 3, gameType: .memoryMatch),
+Achievement(name: "Perfect Memory 1", description: "Get 70% accuracy in Memory Match", type: .accuracy, targetValue: 70, gameType: .memoryMatch),
+Achievement(name: "Speed Memory 1", description: "Complete Memory Match in under 3 minutes", type: .speed, targetValue: 180, gameType: .memoryMatch),
+Achievement(name: "Memory Streak 1", description: "Match 2 pairs in a row", type: .milestone, targetValue: 2, gameType: .memoryMatch),
 
-**Speed Match:**
-- Complete 3 games
-- Get 80% accuracy
-- Answer in under 3 seconds average
-- Answer 3 correctly in a row
+// Speed Match Achievements
+Achievement(name: "Speed Demon 1", description: "Complete 3 Speed Match games", type: .completion, targetValue: 3, gameType: .speedMatch),
+Achievement(name: "Lightning Fast 1", description: "Get 80% accuracy in Speed Match", type: .accuracy, targetValue: 80, gameType: .speedMatch),
+Achievement(name: "Quick Reflexes 1", description: "Answer in under 3 seconds average", type: .speed, targetValue: 3, gameType: .speedMatch),
+Achievement(name: "Speed Streak 1", description: "Answer 3 correctly in a row", type: .milestone, targetValue: 3, gameType: .speedMatch),
 
-**Sequence Recall:**
-- Complete 3 games
-- Get 80% accuracy
-- Remember sequences of 3+ length
-- Complete 2 games without mistakes
+// Sequence Recall Achievements
+Achievement(name: "Sequence Master 1", description: "Complete 3 Sequence Recall games", type: .completion, targetValue: 3, gameType: .sequenceRecall),
+Achievement(name: "Pattern Genius 1", description: "Get 80% accuracy in Sequence Recall", type: .accuracy, targetValue: 80, gameType: .sequenceRecall),
+Achievement(name: "Memory Length 1", description: "Remember sequences of 3+ length", type: .milestone, targetValue: 3, gameType: .sequenceRecall),
+Achievement(name: "Perfect Recall 1", description: "Complete 2 games without mistakes", type: .milestone, targetValue: 2, gameType: .sequenceRecall),
 
-**Card Locator:**
-- Complete 3 games
-- Get 80% accuracy
-- Find all targets in under 30 seconds
-- Find 2 targets
+// Card Locator Achievements
+Achievement(name: "Card Detective 1", description: "Complete 3 Card Locator games", type: .completion, targetValue: 3, gameType: .cardLocator),
+Achievement(name: "Eagle Eye 1", description: "Get 80% accuracy in Card Locator", type: .accuracy, targetValue: 80, gameType: .cardLocator),
+Achievement(name: "Quick Finder 1", description: "Find all targets in under 30 seconds", type: .speed, targetValue: 30, gameType: .cardLocator),
+Achievement(name: "Target Master 1", description: "Find 2 targets", type: .milestone, targetValue: 2, gameType: .cardLocator)
+```
 
 #### **Room 2: "Rising Star" (Easy-Medium)**
 **Memory Match:**
@@ -151,22 +159,41 @@ Create a working achievements system that tracks game progress and unlocks new r
 
 ## 🔧 **Implementation Steps**
 
-### **Step 1: Create AchievementManager.swift**
+### **Step 1: Enhance TrophyRoomStorage**
 ```swift
-class AchievementManager: ObservableObject {
-    static let shared = AchievementManager()
+// Add to TrophyRoomStorage class
+func trackGameCompletion(gameType: GameType, score: Int, time: TimeInterval, accuracy: Double, extraStat: Int) {
+    // Use existing trackGamePerformance method
+    trackGamePerformance(gameType: gameType, score: Double(score), time: time, accuracy: accuracy)
     
-    @Published var currentRoom: TrophyRoom?
-    @Published var achievements: [Achievement] = []
+    // Update extra stats for milestone achievements
+    updateExtraStats(gameType: gameType, extraStat: extraStat)
     
-    // Track game completion and update achievements
-    func trackGameCompletion(gameType: GameType, score: Int, time: TimeInterval, accuracy: Double, extraStat: Int)
-    
-    // Check if room is completed
-    private func checkRoomCompletion()
-    
-    // Complete current room and unlock next
-    private func completeCurrentRoom()
+    // Check room completion
+    checkRoomCompletions()
+}
+
+private func updateExtraStats(gameType: GameType, extraStat: Int) {
+    // Update milestone achievements for current room
+    if let currentRoom = currentTrophyRoom {
+        for (index, achievement) in currentRoom.achievements.enumerated() {
+            if achievement.gameType == gameType && achievement.type == .milestone {
+                var updatedAchievement = achievement
+                updatedAchievement.currentValue = Double(extraStat)
+                
+                if updatedAchievement.currentValue >= updatedAchievement.targetValue && !updatedAchievement.isCompleted {
+                    updatedAchievement.isCompleted = true
+                    updatedAchievement.completedDate = Date()
+                }
+                
+                // Update in storage
+                if let roomIndex = trophyRooms.firstIndex(where: { $0.id == currentRoom.id }) {
+                    trophyRooms[roomIndex].achievements[index] = updatedAchievement
+                    saveAchievements(for: trophyRooms[roomIndex])
+                }
+            }
+        }
+    }
 }
 ```
 
@@ -178,7 +205,9 @@ class AchievementManager: ObservableObject {
 let accuracy = Double(correctMatches) / Double(numberOfPairs) * 100
 let extraStat = longestStreak
 
-AchievementManager.shared.trackGameCompletion(
+// Use existing TrophyRoomStorage
+let trophyRoomStorage = TrophyRoomStorage()
+trophyRoomStorage.trackGameCompletion(
     gameType: .memoryMatch,
     score: score,
     time: timeTaken,
@@ -193,7 +222,8 @@ AchievementManager.shared.trackGameCompletion(
 let accuracy = Double(correctAnswers) / Double(rounds) * 100
 let extraStat = longestStreak
 
-AchievementManager.shared.trackGameCompletion(
+let trophyRoomStorage = TrophyRoomStorage()
+trophyRoomStorage.trackGameCompletion(
     gameType: .speedMatch,
     score: score,
     time: timeTaken,
@@ -208,7 +238,8 @@ AchievementManager.shared.trackGameCompletion(
 let accuracy = Double(correctSequences) / Double(sequenceLength) * 100
 let extraStat = sequenceLength
 
-AchievementManager.shared.trackGameCompletion(
+let trophyRoomStorage = TrophyRoomStorage()
+trophyRoomStorage.trackGameCompletion(
     gameType: .sequenceRecall,
     score: score,
     time: timeTaken,
@@ -223,7 +254,8 @@ AchievementManager.shared.trackGameCompletion(
 let accuracy = Double(targetsFound) / Double(numberOfTargets) * 100
 let extraStat = targetsFound
 
-AchievementManager.shared.trackGameCompletion(
+let trophyRoomStorage = TrophyRoomStorage()
+trophyRoomStorage.trackGameCompletion(
     gameType: .cardLocator,
     score: score,
     time: timeTaken,
@@ -232,147 +264,249 @@ AchievementManager.shared.trackGameCompletion(
 )
 ```
 
-### **Step 3: Create Achievement Progress UI**
+### **Step 3: Enhance Existing UI**
 
-**CurrentRoomView.swift:**
+**Update TrophyRoomAchievementsView.swift:**
 ```swift
-struct CurrentRoomView: View {
-    @StateObject private var achievementManager = AchievementManager.shared
+// Add to existing TrophyRoomAchievementsView
+// Group achievements by game type
+private var memoryMatchAchievements: [Achievement] {
+    trophyRoom.achievements.filter { $0.gameType == .memoryMatch }
+}
+
+private var speedMatchAchievements: [Achievement] {
+    trophyRoom.achievements.filter { $0.gameType == .speedMatch }
+}
+
+private var sequenceRecallAchievements: [Achievement] {
+    trophyRoom.achievements.filter { $0.gameType == .sequenceRecall }
+}
+
+private var cardLocatorAchievements: [Achievement] {
+    trophyRoom.achievements.filter { $0.gameType == .cardLocator }
+}
+
+// Add achievement sections to the view
+VStack(spacing: 20) {
+    // Memory Match Section
+    if !memoryMatchAchievements.isEmpty {
+        AchievementSection(title: "Memory Match", achievements: memoryMatchAchievements)
+    }
     
-    var body: some View {
-        VStack {
-            // Memory Match Achievements
-            AchievementSection(title: "Memory Match", achievements: memoryMatchAchievements)
-            
-            // Speed Match Achievements
-            AchievementSection(title: "Speed Match", achievements: speedMatchAchievements)
-            
-            // Sequence Recall Achievements
-            AchievementSection(title: "Sequence Recall", achievements: sequenceRecallAchievements)
-            
-            // Card Locator Achievements
-            AchievementSection(title: "Card Locator", achievements: cardLocatorAchievements)
-        }
+    // Speed Match Section
+    if !speedMatchAchievements.isEmpty {
+        AchievementSection(title: "Speed Match", achievements: speedMatchAchievements)
+    }
+    
+    // Sequence Recall Section
+    if !sequenceRecallAchievements.isEmpty {
+        AchievementSection(title: "Sequence Recall", achievements: sequenceRecallAchievements)
+    }
+    
+    // Card Locator Section
+    if !cardLocatorAchievements.isEmpty {
+        AchievementSection(title: "Card Locator", achievements: cardLocatorAchievements)
     }
 }
 ```
 
-**AchievementCard.swift:**
+**Create AchievementSection.swift:**
 ```swift
-struct AchievementCard: View {
-    let achievement: Achievement
+struct AchievementSection: View {
+    let title: String
+    let achievements: [Achievement]
     
     var body: some View {
-        HStack {
-            VStack(alignment: .leading) {
-                Text(achievement.name)
-                    .font(.headline)
-                Text(achievement.description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                // Progress bar
-                ProgressView(value: achievement.currentValue, total: achievement.targetValue)
-                    .progressViewStyle(LinearProgressViewStyle())
-            }
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+                .fontWeight(.bold)
+                .foregroundColor(.primary)
             
-            Spacer()
-            
-            // Completion status
-            if achievement.isCompleted {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
-                    .font(.title2)
-            } else {
-                Text("\(Int(achievement.currentValue))/\(Int(achievement.targetValue))")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+            ForEach(achievements) { achievement in
+                AchievementCard(achievement: achievement)
             }
         }
         .padding()
         .background(Color.white.opacity(0.9))
-        .cornerRadius(12)
+        .cornerRadius(16)
+    }
+}
+```
+
+**Update AchievementDisplayCard.swift:**
+```swift
+// Enhance existing AchievementDisplayCard
+struct AchievementDisplayCard: View {
+    let achievement: Achievement
+    var onDelete: (() -> Void)? = nil
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: achievement.badgeIcon)
+                    .foregroundColor(achievement.isCompleted ? .green : .yellow)
+                    .font(.title2)
+                
+                Spacer()
+                
+                if let onDelete = onDelete {
+                    Button(action: onDelete) {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                            .font(.caption)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+            
+            Text(achievement.name)
+                .font(.headline)
+                .fontWeight(.bold)
+                .foregroundColor(.primary)
+            
+            if !achievement.description.isEmpty {
+                Text(achievement.description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+            }
+            
+            // Progress indicator for all types
+            ProgressView(value: achievement.currentValue, total: achievement.targetValue)
+                .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+            
+            // Progress text
+            Text("\(Int(achievement.currentValue))/\(Int(achievement.targetValue))")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            
+            // Completion status
+            if achievement.isCompleted {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("Completed")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                }
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(achievement.isCompleted ? Color.green.opacity(0.1) : Color.white.opacity(0.9))
+                .shadow(color: .blue.opacity(0.1), radius: 4, x: 0, y: 2)
+        )
     }
 }
 ```
 
 ## 🎯 **Achievement Tracking Logic**
 
-### **Achievement Types:**
+### **Achievement Types (from your existing model):**
 - **Completion**: Track number of games completed
 - **Accuracy**: Track accuracy percentage
 - **Speed**: Track completion time
 - **Milestone**: Track streaks, targets, sequence length
+- **Record**: Track personal records
 
-### **Progress Updates:**
+### **Progress Updates (using your existing TrophyRoomStorage):**
 ```swift
-// In AchievementManager
-func trackGameCompletion(gameType: GameType, score: Int, time: TimeInterval, accuracy: Double, extraStat: Int) {
-    // Update achievements for this game type
-    for (index, achievement) in achievements.enumerated() {
-        if achievement.gameType == gameType {
-            var updatedAchievement = achievement
-            
-            switch achievement.type {
-            case .completion:
-                updatedAchievement.currentValue += 1
-            case .accuracy:
-                if accuracy >= achievement.targetValue {
-                    updatedAchievement.currentValue = accuracy
-                }
-            case .speed:
-                if time <= achievement.targetValue {
-                    updatedAchievement.currentValue = achievement.targetValue - time
-                }
-            case .milestone:
-                updatedAchievement.currentValue = Double(extraStat)
-            }
-            
-            // Check if completed
-            if updatedAchievement.currentValue >= updatedAchievement.targetValue && !updatedAchievement.isCompleted {
-                updatedAchievement.isCompleted = true
-                updatedAchievement.completedDate = Date()
-            }
-            
-            achievements[index] = updatedAchievement
-        }
+// Your existing updateAchievementProgress method already handles:
+switch achievement.type {
+case .completion:
+    updatedAchievement.currentValue += 1
+case .speed:
+    if time < achievement.targetValue {
+        updatedAchievement.currentValue = achievement.targetValue - time
     }
-    
-    // Check if room is completed
-    checkRoomCompletion()
+case .accuracy:
+    if accuracy >= achievement.targetValue {
+        updatedAchievement.currentValue = accuracy
+    }
+case .milestone:
+    updatedAchievement.currentValue += 1
+case .record:
+    // Handle in separate personal record method
+    break
 }
 ```
 
-## 🚀 **Room Progression**
+### **Room Completion (using your existing system):**
+```swift
+// Your existing checkRoomCompletions method already:
+private func checkRoomCompletions() {
+    for room in trophyRooms {
+        if room.isUnlocked && !room.isCompleted {
+            let allAchievementsCompleted = room.achievements.allSatisfy { $0.isCompleted }
+            if allAchievementsCompleted {
+                markTrophyRoomCompleted(room)
+                // Post notification for UI updates
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("TrophyRoomCompleted"),
+                    object: room
+                )
+            }
+        }
+    }
+}
+```
+
+## 🚀 **Room Progression (using your existing system)**
 
 ### **Room Completion:**
+- Your existing `checkRoomCompletions()` method handles this
 - When all achievements in a room are completed
-- Reset ALL game data (scores, times, stats)
-- Unlock next room
-- Show completion celebration
+- `markTrophyRoomCompleted()` is called
+- Notification is posted for UI updates
 
 ### **Data Reset:**
+- Use your existing `clearAllDataKeepSetup()` method
 - Clear all game scores and stats
 - Keep room progress and achievements
 - User starts fresh with new targets
 
-## 📱 **UI Features**
+## 📱 **UI Features (enhance your existing UI)**
 
 ### **Achievement Display:**
-- Progress bars for each achievement
-- Completion status indicators
-- Grouped by game type
+- Your existing `AchievementDisplayCard` already shows progress
+- Add progress bars for all achievement types
+- Group achievements by game type
 - Real-time progress updates
 
 ### **Room Status:**
-- Current room progress
-- Next room preview
-- Completion celebrations
-- Unlock animations
+- Your existing `TrophyRoomCard` shows room status
+- Add completion percentage display
+- Use existing unlock animations
+- Show achievement progress
+
+## 🎯 **Key Implementation Points**
+
+### **1. Use Your Existing Structure:**
+- ✅ `TrophyRoomStorage` for room management
+- ✅ `Achievement` model with progress tracking
+- ✅ `TrophyRoomListView` for UI
+- ✅ Existing achievement tracking methods
+
+### **2. Add Game Integration:**
+- Call `trophyRoomStorage.trackGameCompletion()` in each game's finish method
+- Pass correct game stats (score, time, accuracy, extra stats)
+
+### **3. Create Pre-defined Achievements:**
+- Use your existing `Achievement` model
+- Set up 16 achievements per room (4 per game)
+- Use proper `GameType` and `AchievementType` enums
+
+### **4. Enhance UI:**
+- Group achievements by game type in `TrophyRoomAchievementsView`
+- Add progress bars to `AchievementDisplayCard`
+- Show completion status and progress
 
 ## 🎉 **End Result**
 
-A working achievements system where:
+A working achievements system that builds on your existing foundation:
+- ✅ Uses your existing TrophyRoom system
 - ✅ Games track progress and update achievements
 - ✅ Rooms unlock when all achievements are completed
 - ✅ Data resets when room is completed
