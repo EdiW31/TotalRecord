@@ -1,6 +1,4 @@
 import SwiftUI
-
-
 struct SequenceRecallView: View {
     @Binding var sequenceLength: Int
     var onRestart: (() -> Void)? = nil
@@ -14,6 +12,7 @@ struct SequenceRecallView: View {
         GridItem(.flexible())
     ]
 
+    // Int Variables
     @State private var sequence: [Int] = []
     @State private var userInput: [Int] = []
 
@@ -22,19 +21,33 @@ struct SequenceRecallView: View {
     @State private var level: Int = 1
     @State private var lives: Int = 3
     @State private var pressedWrongCardCount: Int = 0
+    @State private var timeForRounds: Int = 4
+    @State private var nrOfRoundsToWin: Int = 3
 
+    // Bool Variables
     @State private var isGameOver: Bool = false
     @State private var isTimerRunning: Bool = false
     @State private var isGameStarted: Bool = false
     @State private var showSequence: Bool = true;
 
+    // Other Variables
     @State private var timer: Timer?    
     @State private var message: String = ""
+
+    //Statistics tracking variables
+    @State private var gameStartTime: Date = Date()
+    @State private var levelsCompleted: Int = 0
+    @State private var showFinishPage: Bool = false
+    @State private var timeTaken: TimeInterval = 0
+    @State private var gameWon: Bool = false
+    @Environment(\.dismiss) private var dismiss
+
 
     var body: some View {
         ZStack {
             LinearGradient(gradient: Gradient(colors: [Color.pink.opacity(0.13), Color.purple.opacity(0.10)]), startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
+            
             VStack(spacing: 28) {
                 // Header
                 VStack(spacing: 6) {
@@ -106,7 +119,6 @@ struct SequenceRecallView: View {
                     .accessibilityLabel("Restart Game")
                 }
                 .padding(.horizontal)
-                // Feedback Message
                 if !message.isEmpty {
                     Text(message)
                         .font(.headline)
@@ -164,6 +176,21 @@ struct SequenceRecallView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             .padding(.vertical, 10)
+            
+            if showFinishPage {
+                FinishGamePage(
+                    stats: createGameStats(),
+                    gameWon: gameWon,
+                    onPlayAgain: {
+                        showFinishPage = false
+                        StartGame()
+                    },
+                    onMainMenu: {
+                        dismiss()
+                    }
+                )
+                .transition(.opacity.combined(with: .scale))
+            }
         }
         .animation(.easeInOut, value: showSequence)
         .onAppear{
@@ -175,15 +202,61 @@ struct SequenceRecallView: View {
         sequence = Array(0..<sequenceLength).map { _ in Int.random(in: 0..<allEmojis.count) }
         userInput = []
         showSequence = true
+
+        //Reset statistics
+        gameStartTime = Date()
+        levelsCompleted = 0
+        showFinishPage = false
+        gameWon = false
+        score = 0
+        level = 1
+
+        timeTaken = 0
         if gameMode == .timed {
-            timeRemaining = 10
+            timeRemaining = timeForRounds 
             lives = 0
+            startGameTimer()
         }
         if gameMode == .infinite {
             lives = 3
             timeRemaining = 0 
         }
         startSequenceTimer()
+    }
+    
+    func createGameStats() -> GameStats {
+        let totalTime = Date().timeIntervalSince(gameStartTime)
+        let stats = GameStats(
+            score: score,
+            timeTaken: totalTime,
+            extraStat: levelsCompleted,
+            gameMode: gameMode,
+            gameType: .sequenceRecall,
+            date: Date()
+        )
+        
+        // Save best scores
+        ScoreStorage.shared.setBestScore(for: .sequenceRecall, mode: gameMode, score: score)
+        ScoreStorage.shared.setBestTime(for: .sequenceRecall, mode: gameMode, time: totalTime)
+        
+        return stats
+    }
+    
+    func showFinishGamePage() {
+        showFinishPage = true
+    }
+    
+    func startGameTimer() {
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            if timeRemaining > 0 {
+                timeRemaining -= 1
+            } else {
+                timer?.invalidate()
+                gameWon = false
+                showFinishGamePage()
+            }
+        }
     }
 
     func startSequenceTimer() {
@@ -203,50 +276,58 @@ struct SequenceRecallView: View {
         if userInput.count < sequence.count {
             userInput.append(index)
             
-            // Check if the current input matches the sequence so far
             let currentInputIndex = userInput.count - 1
             if userInput[currentInputIndex] != sequence[currentInputIndex] {
-                // Wrong input - reset the input row to empty
+                // wrong tap 
                 userInput = []
                 
                 if gameMode == .infinite {
-                    // Update lives counter
                     pressedWrongCardCount += 1
                     if pressedWrongCardCount >= 3 {
                         pressedWrongCardCount = 0
                         lives -= 1
                     }
                     
-                    // Check if game should end
+                    // check game over
                     if lives <= 0 {
                         message = "Game Over! No lives left."
+                        gameWon = false
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                             message = ""
-                            //finish game
-                            isGameOver = true
+                            showFinishGamePage()
                         }
                     } 
                 } else if gameMode == .timed {
-                    // In timed mode, wrong input ends the game
+                    // timed mode wrong input is game over
                     message = "Wrong! Game Over."
+                    gameWon = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                         message = ""
-                        isGameOver = true
+                        showFinishGamePage()
                     }
                 }
                 return
             }
             
-            // If we've completed the sequence correctly
             if userInput.count == sequence.count {
                 message = "Congrats lvl \(level) is Done!"
                 pressedWrongCardCount = 0
                 sequenceLength += 1
                 level += 1
                 score += 15
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    message = ""
-                    StartGame()
+                levelsCompleted += 1
+                
+                if gameMode == .timed && level > nrOfRoundsToWin {
+                    gameWon = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        message = ""
+                        showFinishGamePage()
+                    }
+                } else {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        message = ""
+                        StartGame()
+                    }
                 }
             }
         }

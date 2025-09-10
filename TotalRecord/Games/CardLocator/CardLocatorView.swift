@@ -1,13 +1,3 @@
-// MARK: - Card Locator Game Color Palette
-// Primary:    Color.blue
-// Accent:     Color.purple
-// Highlight:  Color.green
-// Error:      Color.red
-// Background: Color.white.opacity(0.7) or LinearGradient([Color.blue.opacity(0.2), Color.purple.opacity(0.1)])
-// Card Face:  Color.blue.opacity(0.1)
-// Card Border: Color.blue.opacity(0.2)
-// Use these colors for a consistent, modern look throughout the Card Locator game.
-
 import SwiftUI
 
 struct CardLocatorView: View {
@@ -21,27 +11,42 @@ struct CardLocatorView: View {
     let gridColumns = 3
     let allEmojis = ["🍎", "🍌", "🌶️", "🍇", "🍉", "🍓", "🍒", "🍍", "🍍", "🍉", "🍓", "🍒"] // 12 emojis for 4x3
 
+    // Int variables
     @State private var targetCards: [Int] = [] // store indices of target cards
-    @State private var memorizationPhase = true
-    @State private var revealed: [Bool] = Array(repeating: false, count: 12)
-    @State private var feedback: [Color?] = Array(repeating: nil, count: 12)
-    @State private var message: String = ""
-    @State private var seeCardsTimer: Timer? = nil
-    @State private var waitingTimer: Timer? = nil
-    @State private var waitingPhase: Bool = false
-    @State private var waitingTimeRemaining: Int = 10
     @State private var score: Int = 0
     @State private var lives: Int = 3
     @State private var wrongCardCount: Int = 0
+    @State private var waitingTimeRemaining: Int = 10
+
+    // Bool variables
+    @State private var memorizationPhase = true
+    @State private var revealed: [Bool] = Array(repeating: false, count: 12)    
+    @State private var waitingPhase: Bool = false
     @State private var GameFinished = false;
+
+    // String variables
+    @State private var message: String = ""
+
+    // Other variables
+    @State private var seeCardsTimer: Timer? = nil
+    @State private var waitingTimer: Timer? = nil
+    @State private var feedback: [Color?] = Array(repeating: nil, count: 12)
+    @State private var gameStartTime: Date = Date()
+    @Environment(\.dismiss) private var dismiss
+    
+    //Statistics tracking variables
+    @State private var targetsFound: Int = 0
+    @State private var showFinishPage: Bool = false
+    @State private var gameWon: Bool = false
+
+    
 
     var body: some View {
         ZStack {
-            // Modern gradient background
             LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.18), Color.purple.opacity(0.18)]), startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
+            
             VStack(spacing: 24) {
-                // Header
                 VStack(spacing: 4) {
                     Text("Card Locator")
                         .font(.system(size: 38, weight: .bold, design: .rounded))
@@ -70,7 +75,6 @@ struct CardLocatorView: View {
                         }
                     }
                 }
-                // Feedback message
                 if !message.isEmpty {
                     Text(message)
                         .font(.headline)
@@ -81,7 +85,7 @@ struct CardLocatorView: View {
                         .shadow(radius: 2)
                         .transition(.opacity)
                 }
-                // Timer or Game Grid
+                
                 if waitingPhase {
                     Spacer()
                     ZStack {
@@ -125,13 +129,13 @@ struct CardLocatorView: View {
                                                     let showEmoji = memorizationPhase || revealed[index]
                                                     let cardColor: Color = {
                                                         if memorizationPhase && isTarget {
-                                                            return Color.pink // Highlight targets to memorize
+                                                            return Color.pink 
                                                         } else if let fb = feedback[index] {
-                                                            return fb == .green ? Color.green : Color.red // Green for correct, red for incorrect
+                                                            return fb == .green ? Color.green : Color.red 
                                                         } else if memorizationPhase {
-                                                            return Color.purple // Non-targets during memorization
+                                                            return Color.purple 
                                                         } else {
-                                                            return Color.blue // Default after memorization
+                                                            return Color.blue 
                                                         }
                                                     }()
                                                     GameCards(
@@ -175,6 +179,22 @@ struct CardLocatorView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             .padding(.vertical, 16)
+            
+            // Finish Game Page
+            if showFinishPage {
+                FinishGamePage(
+                    stats: createGameStats(),
+                    gameWon: gameWon,
+                    onPlayAgain: {
+                        showFinishPage = false
+                        startGame()
+                    },
+                    onMainMenu: {
+                        dismiss()
+                    }
+                )
+                .transition(.opacity.combined(with: .scale))
+            }
         }
         .background(Color.white.opacity(0.7))
         .onAppear {
@@ -183,6 +203,12 @@ struct CardLocatorView: View {
     }
 
     func startGame() {
+        // Reset statistics
+        gameStartTime = Date()
+        targetsFound = 0
+        showFinishPage = false
+        gameWon = false
+        
         if gameMode == .timed {
             // Pick random target card indices
             targetCards = Array(0..<allEmojis.count).shuffled().prefix(numberOfTargets).sorted()
@@ -192,7 +218,7 @@ struct CardLocatorView: View {
             memorizationPhase = true
             GameFinished = false
             waitingPhase = false
-            score = 0 // Start with 0 points in timed mode
+            score = 0 
             // Show targets for 3 seconds, then hide
             seeCardsTimer?.invalidate()
             seeCardsTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in
@@ -221,6 +247,28 @@ struct CardLocatorView: View {
             }
         }
     }
+    
+    func createGameStats() -> GameStats {
+        let totalTime = Date().timeIntervalSince(gameStartTime)
+        let stats = GameStats(
+            score: score,
+            timeTaken: totalTime,
+            extraStat: targetsFound,
+            gameMode: gameMode,
+            gameType: .cardLocator,
+            date: Date()
+        )
+        
+        // Save best scores
+        ScoreStorage.shared.setBestScore(for: .cardLocator, mode: gameMode, score: score)
+        ScoreStorage.shared.setBestTime(for: .cardLocator, mode: gameMode, time: totalTime)
+        
+        return stats
+    }
+    
+    func showFinishGamePage() {
+        showFinishPage = true
+    }
 
     func startWaitingTimer() {
         waitingTimer?.invalidate()
@@ -242,23 +290,20 @@ struct CardLocatorView: View {
             // Check if all targets found
             if targetCards.allSatisfy({ revealed[$0] }) {
                 if gameMode == .infinite {
-                    // In infinite mode, start a new round
+                    // start new game in timed
                     message = "Great! Starting new round..."
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                         startNewRound()
                     }
                 } else {
-                    // In timed mode, end the game and show final score
-                    GameFinished = true
-                    let finalScore = score
-                    if finalScore >= 0 {
-                        message = "Great job! Final Score: +\(finalScore)"
-                    } else {
-                        message = "Final Score: \(finalScore)"
+                    // end the game in infinite mode
+                    gameWon = true
+                    targetsFound += 1
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        showFinishGamePage()
                     }
                 }
                 
-                // Add score based on number of targets
                 if(numberOfTargets==2){
                     score += 50
                 }
@@ -272,12 +317,12 @@ struct CardLocatorView: View {
         } else {
             feedback[index] = .red
             if gameMode == .infinite {
-                // In infinite mode, lose a life
                 lives -= 1
                 if lives <= 0 {
                     message = "Game Over! No lives left."
+                    gameWon = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                        GameFinished = true
+                        showFinishGamePage()
                     }
                 } else {
                     message = "Wrong card! Lives: \(lives)"
@@ -286,7 +331,6 @@ struct CardLocatorView: View {
                     }
                 }
             } else {
-                // In timed mode, subtract points but continue playing
                 message = "Wrong card! -\(getWrongCardPenalty()) points"
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     message = ""
@@ -317,6 +361,7 @@ struct CardLocatorView: View {
     
     func startNewRound() {
         // Reset for a new round but keep score and lives
+        targetsFound += 1
         targetCards = Array(0..<allEmojis.count).shuffled().prefix(numberOfTargets).sorted()
         revealed = Array(repeating: false, count: allEmojis.count)
         feedback = Array(repeating: nil, count: allEmojis.count)
