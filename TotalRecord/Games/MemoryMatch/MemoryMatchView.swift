@@ -190,9 +190,8 @@ struct MemoryMatchView: View {
             date: Date()
         )
         
-        // Save best scores
-        ScoreStorage.shared.setBestScore(for: .memoryMatch, mode: gameMode, score: score)
-        ScoreStorage.shared.setBestTime(for: .memoryMatch, mode: gameMode, time: totalTime)
+        // Save comprehensive game statistics
+        ScoreStorage.shared.saveGameStats(stats)
         
         return stats
     }

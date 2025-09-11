@@ -259,9 +259,8 @@ struct CardLocatorView: View {
             date: Date()
         )
         
-        // Save best scores
-        ScoreStorage.shared.setBestScore(for: .cardLocator, mode: gameMode, score: score)
-        ScoreStorage.shared.setBestTime(for: .cardLocator, mode: gameMode, time: totalTime)
+        // Save comprehensive game statistics
+        ScoreStorage.shared.saveGameStats(stats)
         
         return stats
     }

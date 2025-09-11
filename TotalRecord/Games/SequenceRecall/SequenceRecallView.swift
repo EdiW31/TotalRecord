@@ -236,9 +236,8 @@ struct SequenceRecallView: View {
             date: Date()
         )
         
-        // Save best scores
-        ScoreStorage.shared.setBestScore(for: .sequenceRecall, mode: gameMode, score: score)
-        ScoreStorage.shared.setBestTime(for: .sequenceRecall, mode: gameMode, time: totalTime)
+        // Save comprehensive game statistics
+        ScoreStorage.shared.saveGameStats(stats)
         
         return stats
     }
