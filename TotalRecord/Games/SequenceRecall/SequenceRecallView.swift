@@ -236,19 +236,18 @@ struct SequenceRecallView: View {
             date: Date()
         )
         
-        // Save comprehensive game statistics
         ScoreStorage.shared.saveGameStats(stats)
         
         return stats
     }
     
     func showFinishGamePage() {
-        // Track achievement progress
         let accuracy = Double(correctSequences) / Double(sequenceLength) * 100
         let extraStat = sequenceLength // Use sequence length for milestone achievements
         let timeTaken = Date().timeIntervalSince(gameStartTime)
         
-        // Use shared instance
+        print("Sequence Recall finished - Score: \(score), Time: \(String(format: "%.1f", timeTaken))s, Accuracy: \(String(format: "%.1f", accuracy))%, Length: \(extraStat)")
+        
         TrophyRoomStorage.shared.trackGameCompletion(
             gameType: .sequenceRecall,
             score: score,
@@ -312,7 +311,6 @@ struct SequenceRecallView: View {
                         }
                     } 
                 } else if gameMode == .timed {
-                    // timed mode wrong input is game over
                     message = "Wrong! Game Over."
                     gameWon = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {

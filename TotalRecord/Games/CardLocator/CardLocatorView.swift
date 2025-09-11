@@ -219,7 +219,6 @@ struct CardLocatorView: View {
             GameFinished = false
             waitingPhase = false
             score = 0 
-            // Show targets for 3 seconds, then hide
             seeCardsTimer?.invalidate()
             seeCardsTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in
                 memorizationPhase = false
@@ -259,19 +258,18 @@ struct CardLocatorView: View {
             date: Date()
         )
         
-        // Save comprehensive game statistics
         ScoreStorage.shared.saveGameStats(stats)
         
         return stats
     }
     
     func showFinishGamePage() {
-        // Track achievement progress
         let accuracy = Double(targetsFound) / Double(numberOfTargets) * 100
         let extraStat = targetsFound // Use targets found for milestone achievements
         let timeTaken = Date().timeIntervalSince(gameStartTime)
         
-        // Use shared instance
+        print("Card Locator finished - Score: \(score), Time: \(String(format: "%.1f", timeTaken))s, Accuracy: \(String(format: "%.1f", accuracy))%, Found: \(extraStat)")
+        
         TrophyRoomStorage.shared.trackGameCompletion(
             gameType: .cardLocator,
             score: score,
@@ -300,7 +298,6 @@ struct CardLocatorView: View {
         revealed[index] = true
         if targetCards.contains(index) {
             feedback[index] = .green
-            // Check if all targets found
             if targetCards.allSatisfy({ revealed[$0] }) {
                 if gameMode == .infinite {
                     // start new game in timed
@@ -382,7 +379,6 @@ struct CardLocatorView: View {
         memorizationPhase = true
         waitingPhase = false
         
-        // Show targets for 3 seconds, then start waiting phase
         seeCardsTimer?.invalidate()
         seeCardsTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in
             memorizationPhase = false

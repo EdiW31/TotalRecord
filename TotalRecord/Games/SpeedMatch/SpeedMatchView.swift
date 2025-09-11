@@ -270,7 +270,6 @@ struct SpeedMatchView: View {
             correctAnswers += 1
             feedbackText = "✅ Correct!"
         } else {
-            // Wrong answer
             if gameMode == .infinite {
                 lives -= 1
                 if lives <= 0 {
@@ -360,19 +359,18 @@ struct SpeedMatchView: View {
             date: Date()
         )
         
-        // Save comprehensive game statistics
         ScoreStorage.shared.saveGameStats(stats)
         
         return stats
     }
     
     func showFinishGamePage() {
-        // Track achievement progress
         let accuracy = Double(correctAnswers) / Double(numberOfRounds) * 100
         let extraStat = roundsCompleted 
         let timeTaken = Date().timeIntervalSince(gameStartTime)
         
-        // Use shared instance
+        print("Speed Match finished - Score: \(score), Time: \(String(format: "%.1f", timeTaken))s, Accuracy: \(String(format: "%.1f", accuracy))%, Rounds: \(extraStat)")
+        
         TrophyRoomStorage.shared.trackGameCompletion(
             gameType: .speedMatch,
             score: score,

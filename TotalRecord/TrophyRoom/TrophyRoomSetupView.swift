@@ -2,7 +2,7 @@ import SwiftUI
 
 struct TrophyRoomSetupView: View {
     @Binding var hasCompletedFirstTimeSetup: Bool
-    @StateObject private var trophyRoomStorage = TrophyRoomStorage()
+    @ObservedObject private var trophyRoomStorage = TrophyRoomStorage.shared
     @State private var currentTrophyRoomIndex = 0
     @State private var showTrophyRoomForm = false
     @State private var selectedColor: Color = .pink
@@ -152,9 +152,9 @@ struct TrophyRoomSetupView: View {
         for (index, trophyRoom) in createdTrophyRooms.enumerated() {
             print("Saving trophy room \(index): \(trophyRoom.name) with color: \(trophyRoom.color)")
             
-            // Add default achievements for each trophy room
+            // Create achievements for ALL games with increasing difficulty
             var trophyRoomWithAchievements = trophyRoom
-            trophyRoomWithAchievements.achievements = getDefaultAchievements(for: index)
+            trophyRoomWithAchievements.achievements = createRoomAchievements(for: index, roomName: trophyRoom.name)
             
             // Use addTrophyRoom to ensure proper creation order and unlock status
             trophyRoomStorage.addTrophyRoom(trophyRoomWithAchievements)
@@ -167,51 +167,162 @@ struct TrophyRoomSetupView: View {
         print("=== END SAVING TROPHY ROOMS ===")
     }
     
-    private func getDefaultAchievements(for roomIndex: Int) -> [Achievement] {
-        switch roomIndex {
-        case 0: 
-            return [
-                Achievement(name: "First Steps", description: "Complete your first Memory Match game", type: .completion, badgeIcon: "1.circle.fill", targetValue: 1, gameType: .memoryMatch),
-                Achievement(name: "Speed Demon", description: "Complete Memory Match in under 3 minutes", type: .speed, badgeIcon: "bolt.fill", targetValue: 180, gameType: .memoryMatch),
-                Achievement(name: "Perfect Match", description: "Get 100% accuracy in Memory Match", type: .accuracy, badgeIcon: "checkmark.circle.fill", targetValue: 100, gameType: .memoryMatch),
-                Achievement(name: "Memory Champion", description: "Complete 5 Memory Match games", type: .milestone, badgeIcon: "star.fill", targetValue: 5, gameType: .memoryMatch),
-                Achievement(name: "Record Breaker", description: "Beat your previous best time", type: .record, badgeIcon: "trophy.fill", targetValue: 0, gameType: .memoryMatch)
-            ]
-        case 1: 
-            return [
-                Achievement(name: "Pattern Learner", description: "Complete your first Sequence Recall game", type: .completion, badgeIcon: "1.circle.fill", targetValue: 1, gameType: .sequenceRecall),
-                Achievement(name: "Quick Thinker", description: "Complete Sequence Recall in under 2 minutes", type: .speed, badgeIcon: "bolt.fill", targetValue: 120, gameType: .sequenceRecall),
-                Achievement(name: "Perfect Memory", description: "Get 100% accuracy in Sequence Recall", type: .accuracy, badgeIcon: "checkmark.circle.fill", targetValue: 100, gameType: .sequenceRecall),
-                Achievement(name: "Sequence Master", description: "Complete 5 Sequence Recall games", type: .milestone, badgeIcon: "star.fill", targetValue: 5, gameType: .sequenceRecall),
-                Achievement(name: "Speed Champion", description: "Beat your previous best time", type: .record, badgeIcon: "trophy.fill", targetValue: 0, gameType: .sequenceRecall)
-            ]
-        case 2:
-            return [
-                Achievement(name: "Eye Opener", description: "Complete your first Card Locator game", type: .completion, badgeIcon: "1.circle.fill", targetValue: 1, gameType: .cardLocator),
-                Achievement(name: "Quick Eye", description: "Complete Card Locator in under 90 seconds", type: .speed, badgeIcon: "bolt.fill", targetValue: 90, gameType: .cardLocator),
-                Achievement(name: "Perfect Vision", description: "Get 100% accuracy in Card Locator", type: .accuracy, badgeIcon: "checkmark.circle.fill", targetValue: 100, gameType: .cardLocator),
-                Achievement(name: "Location Master", description: "Complete 5 Card Locator games", type: .milestone, badgeIcon: "star.fill", targetValue: 5, gameType: .cardLocator),
-                Achievement(name: "Speed Vision", description: "Beat your previous best time", type: .record, badgeIcon: "trophy.fill", targetValue: 0, gameType: .cardLocator)
-            ]
-        case 3:
-            return [
-                Achievement(name: "Speed Starter", description: "Complete your first Speed Match game", type: .completion, badgeIcon: "1.circle.fill", targetValue: 1, gameType: .speedMatch),
-                Achievement(name: "Lightning Fast", description: "Complete Speed Match in under 60 seconds", type: .speed, badgeIcon: "bolt.fill", targetValue: 60, gameType: .speedMatch),
-                Achievement(name: "Perfect Speed", description: "Get 100% accuracy in Speed Match", type: .accuracy, badgeIcon: "checkmark.circle.fill", targetValue: 100, gameType: .speedMatch),
-                Achievement(name: "Speed Master", description: "Complete 5 Speed Match games", type: .milestone, badgeIcon: "star.fill", targetValue: 5, gameType: .speedMatch),
-                Achievement(name: "Speed Legend", description: "Beat your previous best time", type: .record, badgeIcon: "trophy.fill", targetValue: 0, gameType: .speedMatch)
-            ]
-        case 4:
-            return [
-                Achievement(name: "Grandmaster Initiate", description: "Complete all game types at least once", type: .completion, badgeIcon: "1.circle.fill", targetValue: 4, gameType: .general),
-                Achievement(name: "Multi-Game Master", description: "Complete 3 different game types", type: .milestone, badgeIcon: "bolt.fill", targetValue: 3, gameType: .general),
-                Achievement(name: "Perfect Player", description: "Get 100% accuracy in any game", type: .accuracy, badgeIcon: "checkmark.circle.fill", targetValue: 100, gameType: .general),
-                Achievement(name: "Game Champion", description: "Complete 20 games total", type: .milestone, badgeIcon: "star.fill", targetValue: 20, gameType: .general),
-                Achievement(name: "Memory Legend", description: "Unlock all previous trophy rooms", type: .record, badgeIcon: "trophy.fill", targetValue: 4, gameType: .general)
-            ]
-        default:
-            return []
-        }
+    // NEW: Create achievements for ALL games with increasing difficulty per room
+    private func createRoomAchievements(for roomIndex: Int, roomName: String) -> [Achievement] {
+        var allAchievements: [Achievement] = []
+        
+        // Calculate difficulty multiplier based on room index (0-4)
+        let difficultyMultiplier = Double(roomIndex + 1)
+        let baseGames = 3 + roomIndex // Start with 3 games, increase by 1 each room
+        let baseTime = 180.0 - (Double(roomIndex) * 30.0) // Start at 3 min, decrease by 30s each room
+        let baseAccuracy = 70.0 + (Double(roomIndex) * 5.0) // Start at 70%, increase by 5% each room
+        
+        // Memory Match Achievements
+        allAchievements.append(contentsOf: [
+            Achievement(
+                name: "\(roomName) - Memory Starter",
+                description: "Complete \(Int(baseGames)) Memory Match games",
+                type: .completion,
+                badgeIcon: "brain.head.profile",
+                targetValue: Double(baseGames),
+                gameType: .memoryMatch
+            ),
+            Achievement(
+                name: "\(roomName) - Memory Speed",
+                description: "Complete Memory Match in under \(Int(baseTime)) seconds",
+                type: .speed,
+                badgeIcon: "timer",
+                targetValue: baseTime,
+                gameType: .memoryMatch
+            ),
+            Achievement(
+                name: "\(roomName) - Memory Master",
+                description: "Get \(Int(baseAccuracy))% accuracy in Memory Match",
+                type: .accuracy,
+                badgeIcon: "target",
+                targetValue: baseAccuracy,
+                gameType: .memoryMatch
+            ),
+            Achievement(
+                name: "\(roomName) - Memory Streak",
+                description: "Get \(Int(2 * difficultyMultiplier)) streaks in Memory Match",
+                type: .milestone,
+                badgeIcon: "star.fill",
+                targetValue: 2 * difficultyMultiplier,
+                gameType: .memoryMatch
+            )
+        ])
+        
+        // Speed Match Achievements
+        allAchievements.append(contentsOf: [
+            Achievement(
+                name: "\(roomName) - Speed Starter",
+                description: "Complete \(Int(baseGames)) Speed Match games",
+                type: .completion,
+                badgeIcon: "bolt.fill",
+                targetValue: Double(baseGames),
+                gameType: .speedMatch
+            ),
+            Achievement(
+                name: "\(roomName) - Speed Demon",
+                description: "Complete Speed Match in under \(Int(baseTime * 0.7)) seconds",
+                type: .speed,
+                badgeIcon: "timer",
+                targetValue: baseTime * 0.7,
+                gameType: .speedMatch
+            ),
+            Achievement(
+                name: "\(roomName) - Speed Accuracy",
+                description: "Get \(Int(baseAccuracy))% accuracy in Speed Match",
+                type: .accuracy,
+                badgeIcon: "target",
+                targetValue: baseAccuracy,
+                gameType: .speedMatch
+            ),
+            Achievement(
+                name: "\(roomName) - Speed Streak",
+                description: "Get \(Int(3 * difficultyMultiplier)) streaks in Speed Match",
+                type: .milestone,
+                badgeIcon: "star.fill",
+                targetValue: 3 * difficultyMultiplier,
+                gameType: .speedMatch
+            )
+        ])
+        
+        // Sequence Recall Achievements
+        allAchievements.append(contentsOf: [
+            Achievement(
+                name: "\(roomName) - Sequence Starter",
+                description: "Complete \(Int(baseGames)) Sequence Recall games",
+                type: .completion,
+                badgeIcon: "list.number",
+                targetValue: Double(baseGames),
+                gameType: .sequenceRecall
+            ),
+            Achievement(
+                name: "\(roomName) - Sequence Speed",
+                description: "Complete Sequence Recall in under \(Int(baseTime)) seconds",
+                type: .speed,
+                badgeIcon: "timer",
+                targetValue: baseTime,
+                gameType: .sequenceRecall
+            ),
+            Achievement(
+                name: "\(roomName) - Sequence Master",
+                description: "Get \(Int(baseAccuracy))% accuracy in Sequence Recall",
+                type: .accuracy,
+                badgeIcon: "target",
+                targetValue: baseAccuracy,
+                gameType: .sequenceRecall
+            ),
+            Achievement(
+                name: "\(roomName) - Sequence Length",
+                description: "Remember sequences of length \(Int(3 + roomIndex))",
+                type: .milestone,
+                badgeIcon: "star.fill",
+                targetValue: Double(3 + roomIndex),
+                gameType: .sequenceRecall
+            )
+        ])
+        
+        // Card Locator Achievements
+        allAchievements.append(contentsOf: [
+            Achievement(
+                name: "\(roomName) - Locator Starter",
+                description: "Complete \(Int(baseGames)) Card Locator games",
+                type: .completion,
+                badgeIcon: "eye.fill",
+                targetValue: Double(baseGames),
+                gameType: .cardLocator
+            ),
+            Achievement(
+                name: "\(roomName) - Locator Speed",
+                description: "Complete Card Locator in under \(Int(baseTime * 0.8)) seconds",
+                type: .speed,
+                badgeIcon: "timer",
+                targetValue: baseTime * 0.8,
+                gameType: .cardLocator
+            ),
+            Achievement(
+                name: "\(roomName) - Locator Accuracy",
+                description: "Get \(Int(baseAccuracy))% accuracy in Card Locator",
+                type: .accuracy,
+                badgeIcon: "target",
+                targetValue: baseAccuracy,
+                gameType: .cardLocator
+            ),
+            Achievement(
+                name: "\(roomName) - Locator Targets",
+                description: "Find \(Int(4 + roomIndex)) targets in Card Locator",
+                type: .milestone,
+                badgeIcon: "star.fill",
+                targetValue: Double(4 + roomIndex),
+                gameType: .cardLocator
+            )
+        ])
+        
+        print("✅ Created \(allAchievements.count) achievements for room \(roomIndex) (\(roomName))")
+        return allAchievements
     }
 }
 
