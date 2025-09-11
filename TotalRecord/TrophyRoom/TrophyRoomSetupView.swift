@@ -188,14 +188,6 @@ struct TrophyRoomSetupView: View {
                 gameType: .memoryMatch
             ),
             Achievement(
-                name: "\(roomName) - Memory Speed",
-                description: "Complete Memory Match in under \(Int(baseTime)) seconds",
-                type: .speed,
-                badgeIcon: "timer",
-                targetValue: baseTime,
-                gameType: .memoryMatch
-            ),
-            Achievement(
                 name: "\(roomName) - Memory Master",
                 description: "Get \(Int(baseAccuracy))% accuracy in Memory Match",
                 type: .accuracy,
@@ -223,14 +215,14 @@ struct TrophyRoomSetupView: View {
                 targetValue: Double(baseGames),
                 gameType: .speedMatch
             ),
-            Achievement(
-                name: "\(roomName) - Speed Demon",
-                description: "Complete Speed Match in under \(Int(baseTime * 0.7)) seconds",
-                type: .speed,
-                badgeIcon: "timer",
-                targetValue: baseTime * 0.7,
-                gameType: .speedMatch
-            ),
+            // Achievement(
+            //     name: "\(roomName) - Speed Demon",
+            //     description: "Complete Speed Match in under \(Int(baseTime * 0.7)) seconds",
+            //     type: .speed,
+            //     badgeIcon: "timer",
+            //     targetValue: baseTime * 0.7,
+            //     gameType: .speedMatch
+            // ),
             Achievement(
                 name: "\(roomName) - Speed Accuracy",
                 description: "Get \(Int(baseAccuracy))% accuracy in Speed Match",
@@ -259,14 +251,14 @@ struct TrophyRoomSetupView: View {
                 targetValue: Double(baseGames),
                 gameType: .sequenceRecall
             ),
-            Achievement(
-                name: "\(roomName) - Sequence Speed",
-                description: "Complete Sequence Recall in under \(Int(baseTime)) seconds",
-                type: .speed,
-                badgeIcon: "timer",
-                targetValue: baseTime,
-                gameType: .sequenceRecall
-            ),
+            // Achievement(
+            //     name: "\(roomName) - Sequence Speed",
+            //     description: "Complete Sequence Recall in under \(Int(baseTime)) seconds",
+            //     type: .speed,
+            //     badgeIcon: "timer",
+            //     targetValue: baseTime,
+            //     gameType: .sequenceRecall
+            // ),
             Achievement(
                 name: "\(roomName) - Sequence Master",
                 description: "Get \(Int(baseAccuracy))% accuracy in Sequence Recall",
@@ -295,14 +287,14 @@ struct TrophyRoomSetupView: View {
                 targetValue: Double(baseGames),
                 gameType: .cardLocator
             ),
-            Achievement(
-                name: "\(roomName) - Locator Speed",
-                description: "Complete Card Locator in under \(Int(baseTime * 0.8)) seconds",
-                type: .speed,
-                badgeIcon: "timer",
-                targetValue: baseTime * 0.8,
-                gameType: .cardLocator
-            ),
+            // Achievement(
+            //     name: "\(roomName) - Locator Speed",
+            //     description: "Complete Card Locator in under \(Int(baseTime * 0.8)) seconds",
+            //     type: .speed,
+            //     badgeIcon: "timer",
+            //     targetValue: baseTime * 0.8,
+            //     gameType: .cardLocator
+            // ),
             Achievement(
                 name: "\(roomName) - Locator Accuracy",
                 description: "Get \(Int(baseAccuracy))% accuracy in Card Locator",
