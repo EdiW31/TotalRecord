@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 
 // MARK: - Welcome Page Model
 struct WelcomePage {
@@ -62,6 +63,7 @@ struct WelcomeCarouselView: View {
     @State private var currentPage = 0
     @State private var showPalaceCreation = false
     @Binding var hasCompletedFirstTimeSetup: Bool
+    @StateObject private var notificationManager = NotificationManager.shared
     
     let pages: [WelcomePage] = [
         WelcomePage(
@@ -84,6 +86,13 @@ struct WelcomeCarouselView: View {
             description: "Unlock trophy rooms and earn achievements as you master memory training games.",
             imageName: "trophy.fill",
             backgroundColor: .blue
+        ),
+        WelcomePage(
+            title: "Stay Motivated",
+            subtitle: "Keep Your Streak Alive",
+            description: "Enable notifications to get gentle reminders to maintain your memory training streak and never miss a day!",
+            imageName: "bell.badge",
+            backgroundColor: .orange
         ),
         WelcomePage(
             title: "Ready to Start",
@@ -124,9 +133,44 @@ struct WelcomeCarouselView: View {
                 
                 // Action buttons
                 VStack(spacing: 16) {
-                    if currentPage == pages.count - 1 {
+                    if currentPage == pages.count - 2 {
+                        // Notification permission page
+                        VStack(spacing: 16) {
+                            Button(action: {
+                                Task {
+                                    await notificationManager.requestNotificationPermission()
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "bell.badge")
+                                    Text("Enable Notifications")
+                                }
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 50)
+                                .background(Color.white.opacity(0.2))
+                                .cornerRadius(25)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 25)
+                                        .stroke(Color.white, lineWidth: 1)
+                                )
+                            }
+                            
+                            Button("Skip Notifications") {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    currentPage = pages.count - 1
+                                }
+                            }
+                            .foregroundColor(.white.opacity(0.7))
+                        }
+                        .padding(.horizontal, 40)
+                    } else if currentPage == pages.count - 1 {
                         // Get Started button on last page
                         Button(action: {
+                            // Record login when completing setup
+                            notificationManager.recordLogin()
+                            
                             withAnimation(.easeInOut(duration: 0.5)) {
                                 showPalaceCreation = true
                             }
