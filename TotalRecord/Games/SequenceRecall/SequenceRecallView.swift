@@ -23,6 +23,7 @@ struct SequenceRecallView: View {
     @State private var pressedWrongCardCount: Int = 0
     @State private var timeForRounds: Int = 4
     @State private var nrOfRoundsToWin: Int = 3
+    @State private var correctSequences: Int = 0
 
     // Bool Variables
     @State private var isGameOver: Bool = false
@@ -235,14 +236,26 @@ struct SequenceRecallView: View {
             date: Date()
         )
         
-        // Save best scores
-        ScoreStorage.shared.setBestScore(for: .sequenceRecall, mode: gameMode, score: score)
-        ScoreStorage.shared.setBestTime(for: .sequenceRecall, mode: gameMode, time: totalTime)
+        ScoreStorage.shared.saveGameStats(stats)
         
         return stats
     }
     
     func showFinishGamePage() {
+        let accuracy = Double(correctSequences) / Double(sequenceLength) * 100
+        let extraStat = sequenceLength // Use sequence length for milestone achievements
+        let timeTaken = Date().timeIntervalSince(gameStartTime)
+        
+        print("Sequence Recall finished - Score: \(score), Time: \(String(format: "%.1f", timeTaken))s, Accuracy: \(String(format: "%.1f", accuracy))%, Length: \(extraStat)")
+        
+        TrophyRoomStorage.shared.trackGameCompletion(
+            gameType: .sequenceRecall,
+            score: score,
+            time: timeTaken,
+            accuracy: accuracy,
+            extraStat: extraStat
+        )
+        
         showFinishPage = true
     }
     
@@ -298,7 +311,6 @@ struct SequenceRecallView: View {
                         }
                     } 
                 } else if gameMode == .timed {
-                    // timed mode wrong input is game over
                     message = "Wrong! Game Over."
                     gameWon = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -307,6 +319,8 @@ struct SequenceRecallView: View {
                     }
                 }
                 return
+            } else if userInput.count == sequence.count {
+                correctSequences += 1
             }
             
             if userInput.count == sequence.count {

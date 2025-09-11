@@ -10,6 +10,7 @@ struct SpeedMatchView: View {
     @State private var round: Int = 1
     @State private var score: Int = 0
     @State private var lives: Int = 3
+    @State private var correctAnswers: Int = 0
 
     // Bool Variables
     @State private var showFeedback: Bool = false
@@ -266,9 +267,9 @@ struct SpeedMatchView: View {
             feedbackText = "First card!"
         } else if correct == isMatch {
             score += 1
+            correctAnswers += 1
             feedbackText = "✅ Correct!"
         } else {
-            // Wrong answer
             if gameMode == .infinite {
                 lives -= 1
                 if lives <= 0 {
@@ -358,14 +359,26 @@ struct SpeedMatchView: View {
             date: Date()
         )
         
-        // Save best scores
-        ScoreStorage.shared.setBestScore(for: .speedMatch, mode: gameMode, score: score)
-        ScoreStorage.shared.setBestTime(for: .speedMatch, mode: gameMode, time: totalTime)
+        ScoreStorage.shared.saveGameStats(stats)
         
         return stats
     }
     
     func showFinishGamePage() {
+        let accuracy = Double(correctAnswers) / Double(numberOfRounds) * 100
+        let extraStat = roundsCompleted 
+        let timeTaken = Date().timeIntervalSince(gameStartTime)
+        
+        print("Speed Match finished - Score: \(score), Time: \(String(format: "%.1f", timeTaken))s, Accuracy: \(String(format: "%.1f", accuracy))%, Rounds: \(extraStat)")
+        
+        TrophyRoomStorage.shared.trackGameCompletion(
+            gameType: .speedMatch,
+            score: score,
+            time: timeTaken,
+            accuracy: accuracy,
+            extraStat: extraStat
+        )
+        
         showFinishPage = true
     }
 }

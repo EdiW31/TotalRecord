@@ -102,9 +102,43 @@ public struct TrophyScore: Codable {
 }
 
 public class TrophyRoomStorage: ObservableObject {
+    public static let shared = TrophyRoomStorage()
     @Published public var trophyRooms: [TrophyRoom] = []
     @Published public var currentTrophyRoom: TrophyRoom?
     @Published public var trophyScore: TrophyScore = TrophyScore()
+    
+    private init() {
+    }
+    
+    func trackGameCompletion(gameType: GameType, score: Int, time: TimeInterval, accuracy: Double, extraStat: Int) {
+        trackGamePerformance(gameType: gameType, score: Double(score), time: time, accuracy: accuracy)
+        updateExtraStats(gameType: gameType, extraStat: extraStat)
+        checkRoomCompletions()
+    }
+
+    private func updateExtraStats(gameType: GameType, extraStat: Int) {
+        // Update milestone achievements for current room
+        if let currentRoom = currentTrophyRoom {
+            for (index, achievement) in currentRoom.achievements.enumerated() {
+                if achievement.gameType == gameType && achievement.type == .milestone {
+                    var updatedAchievement = achievement
+                    updatedAchievement.currentValue = Double(extraStat)
+                    
+                    if updatedAchievement.currentValue >= updatedAchievement.targetValue && !updatedAchievement.isCompleted {
+                        updatedAchievement.isCompleted = true
+                        updatedAchievement.completedDate = Date()
+                    }
+                    
+                    // Update in storage
+                    if let roomIndex = trophyRooms.firstIndex(where: { $0.id == currentRoom.id }) {
+                        trophyRooms[roomIndex].achievements[index] = updatedAchievement
+                        saveAchievements(for: trophyRooms[roomIndex])
+                    }
+                }
+            }
+        }
+    }
+
     
     // AppStorage keys for each trophy room
     private func trophyRoomKey(for id: UUID, property: String) -> String {
@@ -114,15 +148,12 @@ public class TrophyRoomStorage: ObservableObject {
     // Load trophy rooms from AppStorage
     public func loadTrophyRooms() {
         if trophyRooms.isEmpty {
-            // Load saved trophy rooms from UserDefaults
             loadSavedTrophyRooms()
             
-            // If no saved trophy rooms exist, create an empty array
             if trophyRooms.isEmpty {
                 trophyRooms = []
             }
             
-            // Ensure first trophy room is unlocked if any exist
             if let firstTrophyRoom = trophyRooms.first {
                 if !firstTrophyRoom.isUnlocked {
                     trophyRooms[0].isUnlocked = true
@@ -130,21 +161,33 @@ public class TrophyRoomStorage: ObservableObject {
                 }
             }
             
-            // Load current trophy room
             loadCurrentTrophyRoom()
+        }
+        
+        // Debug: Print loaded trophy rooms and achievements
+        print("🏆 LOADED TROPHY ROOMS:")
+        for (index, room) in trophyRooms.enumerated() {
+            print("   Room \(index + 1): \(room.name)")
+            print("     Unlocked: \(room.isUnlocked)")
+            print("     Completed: \(room.isCompleted)")
+            print("     Achievements: \(room.achievements.count)")
+            for (achievementIndex, achievement) in room.achievements.enumerated() {
+                print("       \(achievementIndex + 1). \(achievement.name) (\(achievement.type.rawValue))")
+                print("         Game: \(achievement.gameType?.rawValue ?? "General")")
+                print("         Progress: \(achievement.currentValue)/\(achievement.targetValue)")
+                print("         Completed: \(achievement.isCompleted)")
+            }
         }
     }
     
-    // Add a new trophy room
     public func addTrophyRoom(_ trophyRoom: TrophyRoom) {
-        // Assign creation order based on current count
         var newTrophyRoom = trophyRoom
         newTrophyRoom.creationOrder = trophyRooms.count
         
         trophyRooms.append(newTrophyRoom)
         saveTrophyRoom(newTrophyRoom)
         
-        // Unlock it if it's the first trophy room
+        // unlock for the first trophy room
         if trophyRooms.count == 1 {
             newTrophyRoom.isUnlocked = true
             saveTrophyRoomUnlockStatus(newTrophyRoom)
@@ -166,17 +209,15 @@ public class TrophyRoomStorage: ObservableObject {
     }
 
     public func canUnlockTrophyRoom(_ trophyRoom: TrophyRoom) -> Bool {
-        // Get the index of this trophy room
         guard let currentIndex = trophyRooms.firstIndex(where: { $0.id == trophyRoom.id }) else { 
             return false
         }
         
-        // First trophy room is always unlockable
         if currentIndex == 0 { 
             return true 
         }
         
-        // Check if previous trophy room is completed
+        // check for the previous room if it is completed
         let previousTrophyRoom = trophyRooms[currentIndex - 1]
         let isCompleted = isTrophyRoomCompleted(previousTrophyRoom)
         return isCompleted
@@ -460,11 +501,13 @@ public class TrophyRoomStorage: ObservableObject {
     
     // NEW: Achievement tracking methods
     public func trackGamePerformance(gameType: GameType, score: Double, time: Double, accuracy: Double) {
-        // Update all relevant achievements
-        for room in trophyRooms {
-            for achievement in room.achievements {
-                if achievement.gameType == gameType {
-                    updateAchievementProgress(achievement, score: score, time: time, accuracy: accuracy)
+        // Update all relevant achievements in UNLOCKED rooms only
+        for (roomIndex, room) in trophyRooms.enumerated() {
+            if room.isUnlocked && !room.isCompleted {
+                for (achievementIndex, achievement) in room.achievements.enumerated() {
+                    if achievement.gameType == gameType {
+                        updateAchievementProgress(achievement, score: score, time: time, accuracy: accuracy)
+                    }
                 }
             }
         }
@@ -504,7 +547,7 @@ public class TrophyRoomStorage: ObservableObject {
         // Find the achievement in the trophy room and update it
         for (roomIndex, room) in trophyRooms.enumerated() {
             if let achievementIndex = room.achievements.firstIndex(where: { $0.id == achievement.id }) {
-                var updatedAchievement = achievement
+                var updatedAchievement = room.achievements[achievementIndex] // Get the current achievement from storage
                 
                 switch achievement.type {
                 case .completion:
@@ -532,6 +575,9 @@ public class TrophyRoomStorage: ObservableObject {
                 
                 // Update the achievement in the array
                 trophyRooms[roomIndex].achievements[achievementIndex] = updatedAchievement
+                
+                // Save the updated achievements
+                saveAchievements(for: trophyRooms[roomIndex])
                 break
             }
         }
@@ -539,15 +585,173 @@ public class TrophyRoomStorage: ObservableObject {
     
     private func checkRoomCompletions() {
         // Check if any room has all achievements completed
-        for room in trophyRooms {
+        for (roomIndex, room) in trophyRooms.enumerated() {
             if room.isUnlocked && !room.isCompleted {
                 let allAchievementsCompleted = room.achievements.allSatisfy { $0.isCompleted }
                 if allAchievementsCompleted {
+                    // Mark room as completed
                     markTrophyRoomCompleted(room)
+                    
+                    // Clear room data to save memory
+                    clearRoomData(room)
+                    
+                    // Unlock next room if available
+                    unlockNextRoom(after: roomIndex)
+                    
+                    // Post notification for UI updates
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("TrophyRoomCompleted"),
+                        object: room
+                    )
+                    
+                    print("🎉 Room '\(room.name)' completed! Data cleared and next room unlocked.")
                 }
             }
         }
     }
+    
+    // Clear achievement data for a completed room to save memory
+    private func clearRoomData(_ room: TrophyRoom) {
+        if let index = trophyRooms.firstIndex(where: { $0.id == room.id }) {
+            // Reset all achievement progress but keep the room structure
+            var clearedRoom = room
+            clearedRoom.achievements = clearedRoom.achievements.map { achievement in
+                var clearedAchievement = achievement
+                clearedAchievement.currentValue = 0
+                clearedAchievement.isCompleted = false
+                clearedAchievement.completedDate = nil
+                return clearedAchievement
+            }
+            clearedRoom.isCompleted = true
+            
+            trophyRooms[index] = clearedRoom
+            saveAchievements(for: clearedRoom)
+            
+            print("🗑️ Cleared data for room '\(room.name)' to save memory")
+        }
+    }
+    
+    // Unlock the next room after completing current one
+    private func unlockNextRoom(after currentIndex: Int) {
+        let nextIndex = currentIndex + 1
+        if nextIndex < trophyRooms.count {
+            let nextRoom = trophyRooms[nextIndex]
+            if !nextRoom.isUnlocked {
+                unlockTrophyRoom(nextRoom)
+                print("🔓 Unlocked next room: '\(nextRoom.name)'")
+            }
+        }
+    }
+    
+    // DEBUG: Print all room and achievement status
+    public func printAllRoomsStatus() {
+        print("📊 ALL ROOMS STATUS:")
+        print("   Total Rooms: \(trophyRooms.count)")
+        
+        if trophyRooms.isEmpty {
+            print("   ❌ NO ROOMS FOUND! Have you completed the setup?")
+            return
+        }
+        
+        for (index, room) in trophyRooms.enumerated() {
+            print("   Room \(index + 1): \(room.name)")
+            print("     Unlocked: \(room.isUnlocked)")
+            print("     Completed: \(room.isCompleted)")
+            print("     Achievements: \(room.achievements.count)")
+            
+            let completedCount = room.achievements.filter { $0.isCompleted }.count
+            print("     Completed Achievements: \(completedCount)/\(room.achievements.count)")
+            
+            // Only show first few achievements to avoid spam
+            let achievementsToShow = Array(room.achievements.prefix(3))
+            for achievement in achievementsToShow {
+                print("       - \(achievement.name): \(achievement.currentValue)/\(achievement.targetValue) (\(achievement.isCompleted ? "✅" : "⏳"))")
+            }
+            if room.achievements.count > 3 {
+                print("       ... and \(room.achievements.count - 3) more achievements")
+            }
+        }
+    }
+    
+    // DEBUG: Check if setup is completed
+    public func checkSetupStatus() {
+        let hasCompletedSetup = UserDefaults.standard.bool(forKey: "hasCompletedFirstTimeSetup")
+        print("🔧 SETUP STATUS:")
+        print("   Has Completed Setup: \(hasCompletedSetup)")
+        print("   Total Rooms: \(trophyRooms.count)")
+        
+        if !hasCompletedSetup {
+            print("   ❌ SETUP NOT COMPLETED! Please complete the trophy room setup first.")
+        } else if trophyRooms.isEmpty {
+            print("   ❌ SETUP COMPLETED BUT NO ROOMS LOADED! There might be an issue with room loading.")
+        } else {
+            print("   ✅ Setup completed and rooms loaded successfully!")
+        }
+    }
+    
+    // NEW: Update achievements based on ScoreStorage data
+    public func updateAchievementsFromScoreStorage() {
+        print("📊 UPDATING ACHIEVEMENTS FROM SCORE STORAGE")
+        
+        for (roomIndex, room) in trophyRooms.enumerated() {
+            if room.isUnlocked && !room.isCompleted {
+                print("   Updating room: \(room.name)")
+                
+                for (achievementIndex, achievement) in room.achievements.enumerated() {
+                    // Skip achievements without a game type
+                    guard achievement.gameType != nil else {
+                        continue
+                    }
+                    
+                    var updatedAchievement = achievement
+                    
+                    // For now, we'll use a simplified approach that doesn't require ScoreStorage imports
+                    // This will be updated when the games call trackGameCompletion
+                    switch achievement.type {
+                    case .completion:
+                        // Keep existing current value, will be updated by trackGameCompletion
+                        break
+                        
+                    case .speed:
+                        // Keep existing current value, will be updated by trackGameCompletion
+                        break
+                        
+                    case .accuracy:
+                        // Keep existing current value, will be updated by trackGameCompletion
+                        break
+                        
+                    case .milestone:
+                        // Keep existing current value, will be updated by trackGameCompletion
+                        break
+                        
+                    case .record:
+                        // Keep existing current value, will be updated by trackGameCompletion
+                        break
+                    }
+                    
+                    // Check if achievement is completed
+                    if updatedAchievement.currentValue >= updatedAchievement.targetValue && !updatedAchievement.isCompleted {
+                        updatedAchievement.isCompleted = true
+                        updatedAchievement.completedDate = Date()
+                        print("     ✅ ACHIEVEMENT COMPLETED: \(updatedAchievement.name)")
+                    }
+                    
+                    // Update if achievement was completed
+                    if updatedAchievement.isCompleted != achievement.isCompleted {
+                        trophyRooms[roomIndex].achievements[achievementIndex] = updatedAchievement
+                        print("     📈 Updated: \(updatedAchievement.name) - \(updatedAchievement.currentValue)/\(updatedAchievement.targetValue)")
+                    }
+                }
+                
+                // Save updated achievements
+                saveAchievements(for: trophyRooms[roomIndex])
+            }
+        }
+        
+        // Check for room completions
+        checkRoomCompletions()
+    }
+    
 }
 
 // Form to create or edit a Trophy Room
@@ -596,40 +800,51 @@ public struct AchievementFormView: View {
     var onSave: (() -> Void)?
     
     public var body: some View {
-        Form {
-            Section("Achievement Details") {
-                TextField("Achievement Name", text: $achievement.name)
-                TextField("Description", text: $achievement.description)
-                
+        VStack(spacing: 20) {
+            TextField("Achievement Name", text: $achievement.name)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            TextField("Description", text: $achievement.description)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            HStack {
+                Text("Type:")
+                Spacer()
                 Picker("Type", selection: $achievement.type) {
                     ForEach(AchievementType.allCases, id: \.self) { type in
                         Text(type.rawValue).tag(type)
                     }
                 }
-                
+                .pickerStyle(MenuPickerStyle())
+            }
+            
+            HStack {
+                Text("Game Type:")
+                Spacer()
                 Picker("Game Type", selection: $achievement.gameType) {
                     Text("General").tag(nil as GameType?)
                     ForEach(GameType.allCases, id: \.self) { gameType in
                         Text(gameType.rawValue).tag(gameType as GameType?)
                     }
                 }
-                
-                HStack {
-                    Text("Target Value")
-                    Spacer()
-                    TextField("Target", value: $achievement.targetValue, format: .number)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                }
+                .pickerStyle(MenuPickerStyle())
             }
             
-            Section("Actions") {
-                Button("Save Achievement") {
-                    onSave?()
-                }
-                .disabled(achievement.name.isEmpty)
+            HStack {
+                Text("Target Value:")
+                Spacer()
+                TextField("Target", value: $achievement.targetValue, format: .number)
+                    .frame(width: 80)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
             }
+            
+            Button("Save Achievement") {
+                onSave?()
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(achievement.name.isEmpty)
         }
+        .padding()
         .navigationTitle(achievement.name.isEmpty ? "New Achievement" : "Edit Achievement")
     }
 }

@@ -26,6 +26,7 @@ struct MemoryMatchView: View {
     @State private var score: Int = 0
     @State private var pressedWrongCardCount: Int = 0
     @State private var lives: Int = 3
+    @State private var correctMatches: Int = 0
     private var totalTime: Int
 
     // Bool Variables
@@ -59,7 +60,6 @@ struct MemoryMatchView: View {
             timerRun = false
             stopTimer() 
             
-            // Initialize cards for infinite mode
             let selectedEmojis = Array(allEmojis.shuffled().prefix(numberOfPairs))
             let pairedEmojis = (selectedEmojis + selectedEmojis).shuffled()
             cards = pairedEmojis.enumerated().map { Card(id: $0.offset, content: $0.element) }
@@ -109,6 +109,7 @@ struct MemoryMatchView: View {
                 self.score += 10
                 pressedWrongCardCount = 0
                 currentStreak += 1
+                correctMatches += 1
                 if cards.allSatisfy({ $0.isMatched }) {
                     if isGameFinished() {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -130,7 +131,6 @@ struct MemoryMatchView: View {
                         pressedWrongCardCount = 0
                     }
                     
-                    // Check if game should end due to no lives left
                     if lives <= 0 {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                             gameFinished = true
@@ -188,14 +188,26 @@ struct MemoryMatchView: View {
             date: Date()
         )
         
-        // Save best scores
-        ScoreStorage.shared.setBestScore(for: .memoryMatch, mode: gameMode, score: score)
-        ScoreStorage.shared.setBestTime(for: .memoryMatch, mode: gameMode, time: totalTime)
+        ScoreStorage.shared.saveGameStats(stats)
         
         return stats
     }
     
     func showFinishGamePage() {
+        let accuracy = Double(correctMatches) / Double(numberOfPairs) * 100
+        let extraStat = correctStreaks + currentStreak // Total streaks achieved
+        let timeTaken = Date().timeIntervalSince(gameStartTime)
+        
+        print("Memory Match finished - Score: \(score), Time: \(String(format: "%.1f", timeTaken))s, Accuracy: \(String(format: "%.1f", accuracy))%, Streaks: \(extraStat)")
+        
+        TrophyRoomStorage.shared.trackGameCompletion(
+            gameType: .memoryMatch,
+            score: score,
+            time: timeTaken,
+            accuracy: accuracy,
+            extraStat: extraStat
+        )
+        
         showFinishPage = true
     }
 
@@ -222,7 +234,6 @@ struct MemoryMatchView: View {
 
     var body: some View {
         ZStack {
-            // Background image fills the entire screen, edge-to-edge
             Image("memory-match-background")
                 .resizable()
                 .scaledToFill()
@@ -242,7 +253,6 @@ struct MemoryMatchView: View {
                     }
                     if !gameFinished {
                         if gameMode == .timed {
-                            // Show timer progress bar for timed mode
                             GeometryReader { geometry in
                                 ZStack(alignment: .leading) {
                                     RoundedRectangle(cornerRadius: 8)
@@ -259,7 +269,6 @@ struct MemoryMatchView: View {
                             .padding(.trailing, 8)
                             .frame(maxWidth: .infinity)
                         } else {
-                            // Show lives for infinite mode
                             HStack(spacing: 8) {
                                 ForEach(0..<3, id: \.self) { index in
                                     Image(systemName: index < lives ? "heart.fill" : "heart")
@@ -317,7 +326,7 @@ struct MemoryMatchView: View {
                 .animation(.easeInOut(duration: 0.5), value: gameFinished)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            // Finish Game Page
+
             if showFinishPage {
                 FinishGamePage(
                     stats: createGameStats(),
@@ -367,11 +376,9 @@ struct MemoryGameCard: View {
     var body: some View {
         ZStack {
             if card.isFaceUp || card.isMatched {
-                // Show emoji on a yellow-themed background
                 RoundedRectangle(cornerRadius: 20)
                     .fill(LinearGradient(gradient: Gradient(colors: [Color.yellow.opacity(0.92), Color.orange.opacity(0.85)]), startPoint: .topLeading, endPoint: .bottomTrailing))
                     .shadow(radius: 8)
-                // Dashed border
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(style: StrokeStyle(lineWidth: 2, dash: [7]))
                     .foregroundColor(Color.black.opacity(0.3))
@@ -379,7 +386,6 @@ struct MemoryGameCard: View {
                 Text(card.content)
                     .font(.system(size: 54))
             } else {
-                // Show the card background image when face down
                 Image("cardsbackground")
                     .resizable()
                     .scaledToFill()
@@ -387,7 +393,6 @@ struct MemoryGameCard: View {
                     .cornerRadius(20)
                     .clipped()
                     .shadow(radius: 8)
-                // Dashed border
                 RoundedRectangle(cornerRadius: 20)
                     .stroke(style: StrokeStyle(lineWidth: 2, dash: [7]))
                     .foregroundColor(Color.black.opacity(0.3))
@@ -403,7 +408,6 @@ struct MemoryGameCard: View {
     }
 }
 
-// Confetti overlay done for Memory game (can be used as a component if needed, waiting for the other games design)
 struct ConfettiOverlay: View {
     let score: Int
     var onRestart: (() -> Void)?
@@ -427,17 +431,14 @@ struct ConfettiOverlay: View {
             .allowsHitTesting(false)
             VStack(spacing: 24) {
                 Spacer()
-                // Smiley face icon
                 Image(systemName: "face.smiling")
                     .font(.system(size: 48))
                     .foregroundColor(.white)
-                // Congratulatory message
                 Text("Good job matching\nall the pairs!")
                     .font(.title)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.white)
-                // Score label and value
                 VStack(spacing: 2) {
                     Text("Your Score")
                         .font(.headline)
@@ -446,7 +447,6 @@ struct ConfettiOverlay: View {
                         .font(.system(size: 44, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                 }
-                // Large white button with black text
                 Spacer()
                 Button(action: { onRestart?() }) {
                     Text("Try again")
@@ -458,7 +458,7 @@ struct ConfettiOverlay: View {
                         .cornerRadius(16)
                 }
                 .padding(.horizontal, 24)
-                .padding(.bottom, 140) // Raise the button even higher above the tab bar
+                .padding(.bottom, 140) 
             }
             .frame(maxWidth: .infinity)
         }
@@ -472,7 +472,6 @@ struct GameLostView: View {
     var onRestart: (() -> Void)?
     var body: some View {
         ZStack(alignment: .center) {
-            // Fully fullscreen black transparent background
             Color.black.opacity(0.78).ignoresSafeArea()
             VStack(spacing: 32) {
                 Spacer()
@@ -506,10 +505,6 @@ struct GameLostView: View {
         }
     }
 }
-
-// Add VisualEffectBlur for glassmorphism
-import SwiftUI
-import UIKit
 struct VisualEffectBlur: UIViewRepresentable {
     var blurStyle: UIBlurEffect.Style
     func makeUIView(context: Context) -> UIVisualEffectView {

@@ -9,7 +9,8 @@ import SwiftUI
 
 @main
 struct TotalRecordApp: App {
-    @StateObject private var trophyRoomStorage = TrophyRoomStorage()
+    // Use the shared instance instead of creating a new one
+    private var trophyRoomStorage = TrophyRoomStorage.shared
 
     init() {
         // macOS app initialization

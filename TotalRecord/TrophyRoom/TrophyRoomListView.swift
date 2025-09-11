@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TrophyRoomListView: View {
-    @StateObject private var trophyRoomStorage = TrophyRoomStorage()
+    @ObservedObject private var trophyRoomStorage = TrophyRoomStorage.shared
     @State private var showCreateSheet = false
     @State private var showCongratulations = false
     @State private var newlyUnlockedTrophyRoom: TrophyRoom?
@@ -9,13 +9,11 @@ struct TrophyRoomListView: View {
     @State private var refreshTrigger = false
     @State private var currentThemeColor: Color = .purple
     
-    // Haptic feedback
     private func triggerHapticFeedback() {
         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
         impactFeedback.impactOccurred()
     }
     
-    // Background gradient colors, changes based on theme and themeColor
     private var backgroundGradientColors: [Color] {
         [
             currentThemeColor.opacity(0.13),
@@ -30,7 +28,6 @@ struct TrophyRoomListView: View {
                 LinearGradient(gradient: Gradient(colors: backgroundGradientColors), startPoint: .topLeading, endPoint: .bottomTrailing)
                     .ignoresSafeArea()
                 VStack(spacing: 24) {
-                    // Title and Buttons
                     HStack {
                         Text("Trophy Room")
                             .font(.system(size: 34, weight: .bold, design: .rounded))
@@ -56,11 +53,9 @@ struct TrophyRoomListView: View {
                     }
                     .padding(.horizontal)
                     
-                    // Trophy Score Card
                     TrophyScoreCard(score: trophyRoomStorage.trophyScore)
                         .padding(.horizontal)
                     
-                    // List of Trophy Rooms
                     ScrollView {
                         VStack(spacing: 18) {
                             ForEach(Array(trophyRoomStorage.trophyRooms.enumerated()), id: \.element.id) { index, trophyRoom in
@@ -74,14 +69,11 @@ struct TrophyRoomListView: View {
                                     }
                                     .buttonStyle(PlainButtonStyle())
                                     .onTapGesture {
-                                        // Disabled to prevent random theme changes
                                     }
                                 } else {
                                     TrophyRoomCard(trophyRoom: trophyRoom, trophyRoomStorage: trophyRoomStorage) {
-                                        // No delete action for locked trophy rooms
                                     }
                                     .onTapGesture {
-                                        // Disabled to prevent random theme changes
                                     }
                                 }
                             }
@@ -95,7 +87,6 @@ struct TrophyRoomListView: View {
             }
         }
         
-        // Congratulations Overlay
         .overlay(
             Group {
                 if showCongratulations, let trophyRoom = newlyUnlockedTrophyRoom {
@@ -129,7 +120,6 @@ struct TrophyRoomListView: View {
             trophyRoomStorage.loadTrophyRooms()
             trophyRoomStorage.loadCurrentTrophyRoom()
             
-            // Ensure first trophy room is always unlocked by default
             if let firstTrophyRoom = trophyRoomStorage.trophyRooms.first {
                 if !firstTrophyRoom.isUnlocked {
                     trophyRoomStorage.trophyRooms[0].isUnlocked = true
@@ -137,17 +127,14 @@ struct TrophyRoomListView: View {
                 }
             }
             
-            // Set theme color based on current trophy room (not always first trophy room)
             currentThemeColor = trophyRoomStorage.getCurrentTrophyRoomColor()
             
-            // Listen for trophy room unlock notifications
             NotificationCenter.default.addObserver(
                 forName: NSNotification.Name("TrophyRoomUnlocked"),
                 object: nil,
                 queue: .main
             ) { notification in
                 if let unlockedTrophyRoom = notification.object as? TrophyRoom {
-                    // Small delay to let the UI update first
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         triggerHapticFeedback()
                         newlyUnlockedTrophyRoom = unlockedTrophyRoom
@@ -156,16 +143,13 @@ struct TrophyRoomListView: View {
                         }
                     }
                     
-                    // Force UI refresh to show unlock button changes
                     DispatchQueue.main.async {
                         trophyRoomStorage.objectWillChange.send()
-                        // Also refresh the view to show unlock button changes
                         refreshTrigger.toggle()
                     }
                 }
             }
             
-            // Listen for trophy room completion notifications
             NotificationCenter.default.addObserver(
                 forName: NSNotification.Name("TrophyRoomCompleted"),
                 object: nil,
@@ -175,21 +159,16 @@ struct TrophyRoomListView: View {
                     triggerHapticFeedback()
                     newlyUnlockedTrophyRoom = completedTrophyRoom
                     
-                    // NO AUTO-UNLOCK: User must manually unlock next trophy room
-                    // This ensures consistent behavior and user control
                     
                     withAnimation(.easeInOut(duration: 0.3)) {
                         showCongratulations = true
                     }
                     
-                    // Force UI refresh to show unlock button changes for next trophy room
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         
-                        // Force multiple refresh mechanisms to ensure UI updates
                         trophyRoomStorage.objectWillChange.send()
                         refreshTrigger.toggle()
                         
-                        // Also force a trophy room storage refresh
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             trophyRoomStorage.objectWillChange.send()
                             refreshTrigger.toggle()
@@ -211,7 +190,6 @@ struct TrophyRoomCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                // Trophy room name (only editable if unlocked)
                 if trophyRoom.isUnlocked {
                     TextField("Trophy Room Name", text: trophyRoomStorage.trophyRoomNameBinding(for: trophyRoom))
                         .font(.title2).fontWeight(.bold)
@@ -228,15 +206,6 @@ struct TrophyRoomCard: View {
                 // Lock/Unlock icon
                 Image(systemName: trophyRoom.isUnlocked ? "trophy.fill" : "lock.fill")
                     .foregroundColor(trophyRoom.isUnlocked ? trophyRoomStorage.getTrophyRoomColor(trophyRoom) : .gray)
-                
-                // Delete button (only for unlocked trophy rooms)
-                if trophyRoom.isUnlocked {
-                    Button(action: { onDelete() }) {
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
             }
 
             if !trophyRoom.description.isEmpty {
@@ -245,7 +214,6 @@ struct TrophyRoomCard: View {
                     .foregroundColor(trophyRoom.isUnlocked ? .secondary : .secondary.opacity(0.6))
             }
             
-            // Content for locked vs unlocked trophy rooms
             if !trophyRoom.isUnlocked {
                     // Unlock button for locked trophy rooms
                     VStack(spacing: 8) {
@@ -280,7 +248,6 @@ struct TrophyRoomCard: View {
                     }
                     .padding(.top, 8)
             } else {
-                // Achievement count for unlocked trophy rooms
                 HStack {
                     Image(systemName: "star.fill")
                         .foregroundColor(.yellow)
@@ -291,7 +258,6 @@ struct TrophyRoomCard: View {
                     Spacer()
                 }
                 
-                // Color indicator
                 HStack {
                     Text("Color:")
                         .font(.caption)
@@ -325,12 +291,10 @@ struct TrophyRoomCard: View {
         }
         .onChange(of: trophyRoom.isUnlocked) { isUnlocked in
             if isUnlocked {
-                // Celebration animation when trophy room unlocks
                 withAnimation(.spring(response: 0.6, dampingFraction: 0.6)) {
                     cardScale = 1.05
                 }
                 
-                // Add a subtle glow effect
                 withAnimation(.easeInOut(duration: 0.8).repeatCount(3, autoreverses: true)) {
                     cardOpacity = 0.8
                 }
@@ -348,7 +312,7 @@ struct TrophyRoomCard: View {
 
 struct TrophyRoomAchievementsView: View {
     @Binding var trophyRoom: TrophyRoom
-    @StateObject private var trophyRoomStorage = TrophyRoomStorage()
+    @ObservedObject private var trophyRoomStorage = TrophyRoomStorage.shared
     @State private var showAchievementSheet = false
     @State private var newAchievement = Achievement(name: "", type: .completion)
 
@@ -362,7 +326,6 @@ struct TrophyRoomAchievementsView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 20) {
-                // Trophy Room Info Header
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         Image(systemName: "trophy.fill")
@@ -403,41 +366,23 @@ struct TrophyRoomAchievementsView: View {
                 )
                 .padding(.horizontal)
 
-                // Add Achievement Button and Complete Trophy Room Button
-                HStack(spacing: 12) {
-                    Button(action: {
-                        newAchievement = Achievement(name: "", type: .completion)
-                        showAchievementSheet = true
-                    }) {
-                        Label("Add Achievement", systemImage: "plus")
-                            .font(.body)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.purple.opacity(0.15))
-                            .cornerRadius(12)
-                    }
+                Button(action: {
+                    trophyRoomStorage.markTrophyRoomCompleted(trophyRoom)
                     
-                    Button(action: {
-                        trophyRoomStorage.markTrophyRoomCompleted(trophyRoom)
-                        
-                        
-                        // Post notification to trigger congratulations
-                        NotificationCenter.default.post(
-                            name: NSNotification.Name("TrophyRoomCompleted"),
-                            object: trophyRoom
-                        )
-                    }) {
-                        Label("Mark Complete", systemImage: "checkmark.circle")
-                            .font(.body)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.green.opacity(0.15))
-                            .cornerRadius(12)
-                    }
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("TrophyRoomCompleted"),
+                        object: trophyRoom
+                    )
+                }) {
+                    Label("Mark Complete", systemImage: "checkmark.circle")
+                        .font(.body)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.green.opacity(0.15))
+                        .cornerRadius(12)
                 }
-                .padding(.horizontal)
+                
 
-                // Achievement Grid or Empty State
                 if trophyRoom.achievements.isEmpty {
                     VStack(spacing: 16) {
                         Image(systemName: "star.fill")
@@ -464,17 +409,41 @@ struct TrophyRoomAchievementsView: View {
                     .padding(.horizontal)
                 } else {
                     ScrollView {
-                        LazyVGrid(columns: [
-                            GridItem(.flexible()),
-                            GridItem(.flexible())
-                        ], spacing: 16) {
-                            ForEach(trophyRoom.achievements) { achievement in
-                                AchievementDisplayCard(achievement: achievement) {
-                                    if let index = trophyRoom.achievements.firstIndex(where: { $0.id == achievement.id }) {
-                                        trophyRoom.achievements.remove(at: index)
-                                        trophyRoomStorage.saveAchievements(for: trophyRoom)
-                                    }
-                                }
+                        LazyVStack(spacing: 20) {
+                            // Memory Match Section
+                            if !memoryMatchAchievements.isEmpty {
+                                AchievementSection(
+                                    title: "Memory Match",
+                                    achievements: memoryMatchAchievements,
+                                    onDeleteAchievement: deleteAchievement
+                                )
+                            }
+                            
+                            // Speed Match Section
+                            if !speedMatchAchievements.isEmpty {
+                                AchievementSection(
+                                    title: "Speed Match",
+                                    achievements: speedMatchAchievements,
+                                    onDeleteAchievement: deleteAchievement
+                                )
+                            }
+                            
+                            // Sequence Recall Section
+                            if !sequenceRecallAchievements.isEmpty {
+                                AchievementSection(
+                                    title: "Sequence Recall",
+                                    achievements: sequenceRecallAchievements,
+                                    onDeleteAchievement: deleteAchievement
+                                )
+                            }
+                            
+                            // Card Locator Section
+                            if !cardLocatorAchievements.isEmpty {
+                                AchievementSection(
+                                    title: "Card Locator",
+                                    achievements: cardLocatorAchievements,
+                                    onDeleteAchievement: deleteAchievement
+                                )
                             }
                         }
                         .padding(.horizontal)
@@ -483,6 +452,9 @@ struct TrophyRoomAchievementsView: View {
             }
         }
         .navigationTitle("Trophy Room Achievements")
+        .onAppear {
+            trophyRoomStorage.updateAchievementsFromScoreStorage()
+        }
         .sheet(isPresented: $showAchievementSheet) {
             AchievementFormView(achievement: $newAchievement) {
                 trophyRoom.achievements.append(newAchievement)
@@ -490,6 +462,75 @@ struct TrophyRoomAchievementsView: View {
                 showAchievementSheet = false
             }
         }
+    }
+    
+    private var memoryMatchAchievements: [Achievement] {
+        trophyRoom.achievements.filter { $0.gameType == .memoryMatch }
+    }
+    
+    private var speedMatchAchievements: [Achievement] {
+        trophyRoom.achievements.filter { $0.gameType == .speedMatch }
+    }
+    
+    private var sequenceRecallAchievements: [Achievement] {
+        trophyRoom.achievements.filter { $0.gameType == .sequenceRecall }
+    }
+    
+    private var cardLocatorAchievements: [Achievement] {
+        trophyRoom.achievements.filter { $0.gameType == .cardLocator }
+    }
+    
+    private func deleteAchievement(_ achievement: Achievement) {
+        if let index = trophyRoom.achievements.firstIndex(where: { $0.id == achievement.id }) {
+            trophyRoom.achievements.remove(at: index)
+            trophyRoomStorage.saveAchievements(for: trophyRoom)
+        }
+    }
+    
+}
+
+struct AchievementSection: View {
+    let title: String
+    let achievements: [Achievement]
+    let onDeleteAchievement: (Achievement) -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(title)
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Text("\(achievements.filter { $0.isCompleted }.count)/\(achievements.count)")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(8)
+            }
+            
+            LazyVGrid(columns: [
+                GridItem(.flexible()),
+                GridItem(.flexible())
+            ], spacing: 12) {
+                ForEach(achievements) { achievement in
+                    AchievementDisplayCard(achievement: achievement) {
+                        onDeleteAchievement(achievement)
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white.opacity(0.9))
+                .shadow(color: .purple.opacity(0.1), radius: 6, x: 0, y: 4)
+        )
     }
 }
 
@@ -500,24 +541,25 @@ struct AchievementDisplayCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Image(systemName: "star.fill")
-                    .foregroundColor(.yellow)
+                Image(systemName: achievementBadgeIcon)
+                    .foregroundColor(achievement.isCompleted ? .green : .yellow)
                     .font(.title2)
                 
                 Spacer()
                 
-                Button(action: onDelete) {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
-                        .font(.caption)
-                }
-                .buttonStyle(PlainButtonStyle())
+                // Button(action: onDelete) {
+                //     Image(systemName: "trash")
+                //         .foregroundColor(.red)
+                //         .font(.caption)
+                // }
+                // .buttonStyle(PlainButtonStyle())
             }
             
             Text(achievement.name)
                 .font(.headline)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
+                .lineLimit(2)
             
             if !achievement.description.isEmpty {
                 Text(achievement.description)
@@ -526,13 +568,10 @@ struct AchievementDisplayCard: View {
                     .lineLimit(2)
             }
             
-            // Progress indicator
-            if achievement.type == .speed || achievement.type == .accuracy {
-                ProgressView(value: achievement.currentValue, total: achievement.targetValue)
-                    .progressViewStyle(LinearProgressViewStyle(tint: .blue))
-            }
+            // Progress visualization based on achievement type
+            progressView
             
-            // Completion status
+            // Completion status with date
             if achievement.isCompleted {
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
@@ -540,15 +579,110 @@ struct AchievementDisplayCard: View {
                     Text("Completed")
                         .font(.caption)
                         .foregroundColor(.green)
+                    
+                    if let completedDate = achievement.completedDate {
+                        Spacer()
+                        Text(formatDate(completedDate))
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.9))
-                .shadow(color: .blue.opacity(0.1), radius: 4, x: 0, y: 2)
+                .fill(achievement.isCompleted ? Color.green.opacity(0.05) : Color.white.opacity(0.9))
+                .shadow(color: achievement.isCompleted ? .green.opacity(0.1) : .blue.opacity(0.1), radius: 4, x: 0, y: 2)
         )
+    }
+    
+    // Computed properties for better organization
+    private var achievementBadgeIcon: String {
+        switch achievement.type {
+        case .completion:
+            return "gamecontroller.fill"
+        case .speed:
+            return "timer"
+        case .accuracy:
+            return "target"
+        case .milestone:
+            return "star.fill"
+        case .record:
+            return "trophy.fill"
+        }
+    }
+    
+    @ViewBuilder
+    private var progressView: some View {
+        switch achievement.type {
+        case .completion:
+            if achievement.targetValue > 1 {
+                HStack {
+                    Text("\(Int(achievement.currentValue))/\(Int(achievement.targetValue))")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    ProgressView(value: achievement.currentValue, total: achievement.targetValue)
+                        .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                        .frame(width: 60)
+                }
+            }
+        case .speed:
+            HStack {
+                Text("Best: \(formatTime(achievement.currentValue))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Spacer()
+                Text("Target: \(formatTime(achievement.targetValue))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        case .accuracy:
+            HStack {
+                Text("\(Int(achievement.currentValue))%")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Spacer()
+                ProgressView(value: achievement.currentValue, total: achievement.targetValue)
+                    .progressViewStyle(LinearProgressViewStyle(tint: achievement.currentValue >= achievement.targetValue ? .green : .blue))
+                    .frame(width: 60)
+            }
+        case .milestone:
+            if achievement.targetValue > 1 {
+                HStack {
+                    Text("\(Int(achievement.currentValue))/\(Int(achievement.targetValue))")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    ProgressView(value: achievement.currentValue, total: achievement.targetValue)
+                        .progressViewStyle(LinearProgressViewStyle(tint: .purple))
+                        .frame(width: 60)
+                }
+            }
+        case .record:
+            Text("Personal Record")
+                .font(.caption)
+                .foregroundColor(.orange)
+                .fontWeight(.medium)
+        }
+    }
+    
+    private func formatTime(_ time: Double) -> String {
+        if time < 60 {
+            return String(format: "%.1fs", time)
+        } else {
+            let minutes = Int(time) / 60
+            let seconds = Int(time) % 60
+            return "\(minutes)m \(seconds)s"
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
     }
 }
 
