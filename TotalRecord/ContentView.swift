@@ -8,6 +8,7 @@ struct ContentView: View {
     @State private var showPalaceCreation = false
     
     @EnvironmentObject var trophyRoomStorage: TrophyRoomStorage
+    @EnvironmentObject var notificationManager: NotificationManager
     
     // Get the current trophy room color for theming
     private var currentTrophyRoomColor: Color {
@@ -48,7 +49,12 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            //hasCompletedFirstTimeSetup = false
+            hasCompletedFirstTimeSetup = false
+            
+            if hasCompletedFirstTimeSetup {
+                notificationManager.recordLogin()
+            }
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 withAnimation(.easeOut(duration: 0.6)) {
                     showSplash = false
