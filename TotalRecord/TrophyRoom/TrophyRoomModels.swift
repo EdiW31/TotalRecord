@@ -160,6 +160,21 @@ public class TrophyRoomStorage: ObservableObject {
             
             loadCurrentTrophyRoom()
         }
+        
+        // Debug: Print loaded trophy rooms and achievements
+        print("🏆 LOADED TROPHY ROOMS:")
+        for (index, room) in trophyRooms.enumerated() {
+            print("   Room \(index + 1): \(room.name)")
+            print("     Unlocked: \(room.isUnlocked)")
+            print("     Completed: \(room.isCompleted)")
+            print("     Achievements: \(room.achievements.count)")
+            for (achievementIndex, achievement) in room.achievements.enumerated() {
+                print("       \(achievementIndex + 1). \(achievement.name) (\(achievement.type.rawValue))")
+                print("         Game: \(achievement.gameType?.rawValue ?? "General")")
+                print("         Progress: \(achievement.currentValue)/\(achievement.targetValue)")
+                print("         Completed: \(achievement.isCompleted)")
+            }
+        }
     }
     
     public func addTrophyRoom(_ trophyRoom: TrophyRoom) {
@@ -483,10 +498,23 @@ public class TrophyRoomStorage: ObservableObject {
     
     // NEW: Achievement tracking methods
     public func trackGamePerformance(gameType: GameType, score: Double, time: Double, accuracy: Double) {
+        print("🎯 TRACKING GAME PERFORMANCE:")
+        print("   Game Type: \(gameType.rawValue)")
+        print("   Score: \(score)")
+        print("   Time: \(time)")
+        print("   Accuracy: \(accuracy)")
+        print("   Total Rooms: \(trophyRooms.count)")
+        
         // Update all relevant achievements
-        for room in trophyRooms {
-            for achievement in room.achievements {
+        for (roomIndex, room) in trophyRooms.enumerated() {
+            print("   Room \(roomIndex + 1): \(room.name) - \(room.achievements.count) achievements")
+            for (achievementIndex, achievement) in room.achievements.enumerated() {
                 if achievement.gameType == gameType {
+                    print("     Achievement \(achievementIndex + 1): \(achievement.name)")
+                    print("       Type: \(achievement.type.rawValue)")
+                    print("       Current: \(achievement.currentValue) / \(achievement.targetValue)")
+                    print("       Completed: \(achievement.isCompleted)")
+                    
                     updateAchievementProgress(achievement, score: score, time: time, accuracy: accuracy)
                 }
             }
@@ -524,6 +552,9 @@ public class TrophyRoomStorage: ObservableObject {
     }
     
     private func updateAchievementProgress(_ achievement: Achievement, score: Double, time: Double, accuracy: Double) {
+        print("     🔄 UPDATING ACHIEVEMENT: \(achievement.name)")
+        print("       Before - Current: \(achievement.currentValue), Target: \(achievement.targetValue), Completed: \(achievement.isCompleted)")
+        
         // Find the achievement in the trophy room and update it
         for (roomIndex, room) in trophyRooms.enumerated() {
             if let achievementIndex = room.achievements.firstIndex(where: { $0.id == achievement.id }) {
@@ -532,17 +563,26 @@ public class TrophyRoomStorage: ObservableObject {
                 switch achievement.type {
                 case .completion:
                     updatedAchievement.currentValue += 1
+                    print("       Completion: +1 (now \(updatedAchievement.currentValue))")
                 case .speed:
                     if time < achievement.targetValue {
                         updatedAchievement.currentValue = achievement.targetValue - time
+                        print("       Speed: Updated to \(updatedAchievement.currentValue) (time: \(time) < target: \(achievement.targetValue))")
+                    } else {
+                        print("       Speed: No update (time: \(time) >= target: \(achievement.targetValue))")
                     }
                 case .accuracy:
                     if accuracy >= achievement.targetValue {
                         updatedAchievement.currentValue = accuracy
+                        print("       Accuracy: Updated to \(updatedAchievement.currentValue) (accuracy: \(accuracy) >= target: \(achievement.targetValue))")
+                    } else {
+                        print("       Accuracy: No update (accuracy: \(accuracy) < target: \(achievement.targetValue))")
                     }
                 case .milestone:
                     updatedAchievement.currentValue += 1
+                    print("       Milestone: +1 (now \(updatedAchievement.currentValue))")
                 case .record:
+                    print("       Record: No update (handled separately)")
                     // Handle in separate personal record method
                     break
                 }
@@ -551,7 +591,10 @@ public class TrophyRoomStorage: ObservableObject {
                 if updatedAchievement.currentValue >= updatedAchievement.targetValue && !updatedAchievement.isCompleted {
                     updatedAchievement.isCompleted = true
                     updatedAchievement.completedDate = Date()
+                    print("       🎉 ACHIEVEMENT COMPLETED! 🎉")
                 }
+                
+                print("       After - Current: \(updatedAchievement.currentValue), Target: \(updatedAchievement.targetValue), Completed: \(updatedAchievement.isCompleted)")
                 
                 // Update the achievement in the array
                 trophyRooms[roomIndex].achievements[achievementIndex] = updatedAchievement

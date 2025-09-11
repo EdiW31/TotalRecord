@@ -23,6 +23,7 @@ struct SequenceRecallView: View {
     @State private var pressedWrongCardCount: Int = 0
     @State private var timeForRounds: Int = 4
     @State private var nrOfRoundsToWin: Int = 3
+    @State private var correctSequences: Int = 0
 
     // Bool Variables
     @State private var isGameOver: Bool = false
@@ -243,6 +244,20 @@ struct SequenceRecallView: View {
     }
     
     func showFinishGamePage() {
+        // Track achievement progress
+        let accuracy = Double(correctSequences) / Double(sequenceLength) * 100
+        let extraStat = sequenceLength // Use sequence length for milestone achievements
+        let timeTaken = Date().timeIntervalSince(gameStartTime)
+        
+        // Use shared instance
+        TrophyRoomStorage.shared.trackGameCompletion(
+            gameType: .sequenceRecall,
+            score: score,
+            time: timeTaken,
+            accuracy: accuracy,
+            extraStat: extraStat
+        )
+        
         showFinishPage = true
     }
     
@@ -307,6 +322,8 @@ struct SequenceRecallView: View {
                     }
                 }
                 return
+            } else if userInput.count == sequence.count {
+                correctSequences += 1
             }
             
             if userInput.count == sequence.count {

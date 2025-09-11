@@ -203,6 +203,14 @@ struct MemoryMatchView: View {
         let extraStat = correctStreaks + currentStreak // Total streaks achieved
         let timeTaken = Date().timeIntervalSince(gameStartTime)
         
+        // print("🎮 MEMORY MATCH GAME FINISHED:")
+        // print("   Score: \(score)")
+        // print("   Time: \(timeTaken) seconds")
+        // print("   Accuracy: \(accuracy)%")
+        // print("   Extra Stats (streaks): \(extraStat)")
+        // print("   Correct Matches: \(correctMatches)")
+        // print("   Number of Pairs: \(numberOfPairs)")
+        
         // Use shared instance
         TrophyRoomStorage.shared.trackGameCompletion(
             gameType: .memoryMatch,

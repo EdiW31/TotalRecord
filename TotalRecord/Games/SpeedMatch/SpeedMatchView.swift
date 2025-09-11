@@ -10,6 +10,7 @@ struct SpeedMatchView: View {
     @State private var round: Int = 1
     @State private var score: Int = 0
     @State private var lives: Int = 3
+    @State private var correctAnswers: Int = 0
 
     // Bool Variables
     @State private var showFeedback: Bool = false
@@ -266,6 +267,7 @@ struct SpeedMatchView: View {
             feedbackText = "First card!"
         } else if correct == isMatch {
             score += 1
+            correctAnswers += 1
             feedbackText = "✅ Correct!"
         } else {
             // Wrong answer
@@ -366,6 +368,20 @@ struct SpeedMatchView: View {
     }
     
     func showFinishGamePage() {
+        // Track achievement progress
+        let accuracy = Double(correctAnswers) / Double(numberOfRounds) * 100
+        let extraStat = roundsCompleted 
+        let timeTaken = Date().timeIntervalSince(gameStartTime)
+        
+        // Use shared instance
+        TrophyRoomStorage.shared.trackGameCompletion(
+            gameType: .speedMatch,
+            score: score,
+            time: timeTaken,
+            accuracy: accuracy,
+            extraStat: extraStat
+        )
+        
         showFinishPage = true
     }
 }

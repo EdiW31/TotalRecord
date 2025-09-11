@@ -267,6 +267,20 @@ struct CardLocatorView: View {
     }
     
     func showFinishGamePage() {
+        // Track achievement progress
+        let accuracy = Double(targetsFound) / Double(numberOfTargets) * 100
+        let extraStat = targetsFound // Use targets found for milestone achievements
+        let timeTaken = Date().timeIntervalSince(gameStartTime)
+        
+        // Use shared instance
+        TrophyRoomStorage.shared.trackGameCompletion(
+            gameType: .cardLocator,
+            score: score,
+            time: timeTaken,
+            accuracy: accuracy,
+            extraStat: extraStat
+        )
+        
         showFinishPage = true
     }
 
