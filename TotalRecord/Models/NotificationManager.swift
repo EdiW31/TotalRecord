@@ -1,5 +1,5 @@
 
-mport UserNotifications
+import UserNotifications
 import Foundation
 
 public class NotificationManager: ObservableObject {
@@ -10,7 +10,7 @@ public class NotificationManager: ObservableObject {
     
     private let userDefaults = UserDefaults.standard
     private let lastLoginKey = "lastLoginTime"
-    private let reminderIntervalHours: Double = 1.0/60.0 
+    private let reminderIntervalHours: Double = 1.0/60.0  // 1 minute for testing (was 8.0 hours)
     
     private init() {
         loadLastLoginTime()
@@ -31,7 +31,9 @@ public class NotificationManager: ObservableObject {
                 await scheduleStreakReminder()
             }
             
-        } 
+        } catch {
+            print("❌ Notification permission request failed: \(error)")
+        }
     }
     
     private func checkNotificationPermission() {
@@ -46,6 +48,7 @@ public class NotificationManager: ObservableObject {
         lastLoginTime = Date()
         saveLastLoginTime()
         
+        // Cancel any existing reminders and schedule new ones
         cancelAllReminders()
         if notificationPermissionGranted {
             Task {
@@ -66,7 +69,8 @@ public class NotificationManager: ObservableObject {
         }
     }
     
-    private func scheduleStreakReminder() async 
+    private func scheduleStreakReminder() async {
+        // Cancel existing reminders first
         cancelAllReminders()
         
         // Only schedule if we have permission
@@ -75,12 +79,14 @@ public class NotificationManager: ObservableObject {
             return
         }
         
+        // Create notification content
         let content = UNMutableNotificationContent()
         content.title = "Keep Your Streak Alive! 🔥"
         content.body = "You haven't played in a while. Come back and continue your TotalRecord journey!"
         content.sound = .default
         content.badge = 1
         
+        // Calculate trigger time (1 minute from last login for testing)
         guard let loginTime = lastLoginTime else {
             print("⚠️ No last login time available")
             return
@@ -88,36 +94,45 @@ public class NotificationManager: ObservableObject {
         
         let reminderTime = loginTime.addingTimeInterval(reminderIntervalHours * 3600)
         
+        // Don't schedule if the reminder time has already passed
         guard reminderTime > Date() else {
             print("⏰ Reminder time has already passed, not scheduling")
             return
         }
         
+        // Create trigger
         let trigger = UNCalendarNotificationTrigger(
             dateMatching: Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: reminderTime),
             repeats: false
         )
         
+        // Create request
         let request = UNNotificationRequest(
             identifier: "streakReminder",
             content: content,
             trigger: trigger
         )
         
+        // Schedule notification
         do {
             try await UNUserNotificationCenter.current().add(request)
-        } 
+            print("✅ Streak reminder scheduled for: \(reminderTime)")
+        } catch {
+            print("❌ Failed to schedule streak reminder: \(error)")
+        }
     }
     
     public func cancelAllReminders() {
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        print("🗑️ All pending reminders cancelled")
     }
-    
     
     public func isDoNotDisturbEnabled() -> Bool {
+        // Check if Do Not Disturb is enabled
+        // Note: iOS doesn't provide direct access to DND status for privacy reasons
+        // The system will automatically suppress notifications when DND is enabled
         return false
     }
-   
     
     public func hoursSinceLastLogin() -> Double? {
         guard let loginTime = lastLoginTime else { return nil }
@@ -128,11 +143,10 @@ public class NotificationManager: ObservableObject {
         guard let hoursSinceLogin = hoursSinceLastLogin() else { return false }
         return hoursSinceLogin >= reminderIntervalHours
     }
-
+    
     public func setupNotificationsForNewUser() async {
         await requestNotificationPermission()
     }
-
     
     public func printNotificationStatus() {
         print("📱 Notification Status:")

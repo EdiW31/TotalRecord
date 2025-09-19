@@ -1,11 +1,4 @@
 import SwiftUI
-
-/// A reusable button that can either navigate to a destination or perform an action.
-/// Usage:
-/// - As a navigation button:
-///   AppButton(label: "Play!", color: .blue, destination: AnyView(SomeView()))
-/// - As a regular button:
-///   AppButton(label: "Restart", color: .red, action: { ... })
 struct AppButton: View {
     let label: String
     let color: Color
