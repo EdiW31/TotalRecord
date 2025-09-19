@@ -12,12 +12,10 @@ TotalRecard is an iOS app designed to help users improve memory through card-bas
 - **Sequence Recall** – View and repeat increasingly long card sequences
 - **Card Locator** – Remember and tap the location of hidden cards
 - **Speed Match** – Match patterns quickly under time constraints
-- **Odd One Out** *(Coming Soon)* – Find the unique card among a group
-- **Blind Match** *(Coming Soon)* – Match cards with only initial clues, no visuals
-- **Memory Palace** – Create virtual palaces, assign cards to locations, and recall them later
-- Difficulty levels: Beginner → Expert
-- Scoring system with accuracy, time bonuses, and combo streaks
+- **Trophy Rooms** – Create virtual rooms, complete the achievements and review them later
+- Game modes: Infinite/Timed for each game
 - Timer-based gameplay (configurable)
+- Infinite-based gameplay
 - Progress tracking and local persistence
 - Elegant SwiftUI UI with animations and accessibility
 
