@@ -49,7 +49,7 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            hasCompletedFirstTimeSetup = false
+            //hasCompletedFirstTimeSetup = false
             
             if hasCompletedFirstTimeSetup {
                 notificationManager.recordLogin()
