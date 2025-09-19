@@ -102,12 +102,6 @@ class GameStatisticsManager: ObservableObject {
         }
         
         saveStatistics(statistics[key]!)
-        
-        print("📊 GAME STATISTICS UPDATED:")
-        print("   Game: \(gameStats.gameType.rawValue) (\(gameStats.gameMode.rawValue))")
-        print("   Score: \(gameStats.score) (Best: \(statistics[key]!.bestScore))")
-        print("   Time: \(gameStats.timeTaken)s (Best: \(statistics[key]!.bestTime)s)")
-        print("   Total Games: \(statistics[key]!.totalGamesPlayed)")
     }
     
     func getStatistics(for gameType: GameType, mode: GameMode) -> GameStatistics? {
@@ -140,16 +134,6 @@ class GameStatisticsManager: ObservableObject {
     }
     
     func printAllStatistics() {
-        print("📊 ALL GAME STATISTICS:")
-        for (key, stats) in statistics {
-            print("   \(key):")
-            print("     Total Games: \(stats.totalGamesPlayed)")
-            print("     Best Score: \(stats.bestScore)")
-            print("     Best Time: \(stats.bestTime)s")
-            print("     Worst Time: \(stats.worstTime)s")
-            print("     Best Extra Stat: \(stats.bestExtraStat)")
-            print("     First Play: \(stats.firstPlayDate?.description ?? "Never")")
-            print("     Latest Play: \(stats.latestPlayDate?.description ?? "Never")")
-        }
+        //print("📊 ALL GAME STATISTICS:")
     }
 }

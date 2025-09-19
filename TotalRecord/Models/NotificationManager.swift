@@ -32,7 +32,7 @@ public class NotificationManager: ObservableObject {
             }
             
         } catch {
-            print("❌ Notification permission request failed: \(error)")
+            print("Notification permission request failed: \(error)")
         }
     }
     
@@ -70,16 +70,14 @@ public class NotificationManager: ObservableObject {
     }
     
     private func scheduleStreakReminder() async {
-        // Cancel existing reminders first
         cancelAllReminders()
         
-        // Only schedule if we have permission
         guard notificationPermissionGranted else {
             print("📱 Notification permission not granted, skipping reminder scheduling")
             return
         }
         
-        // Create notification content
+        // creez un content pentru notificare
         let content = UNMutableNotificationContent()
         content.title = "Keep Your Streak Alive! 🔥"
         content.body = "You haven't played in a while. Come back and continue your TotalRecord journey!"
@@ -100,25 +98,23 @@ public class NotificationManager: ObservableObject {
             return
         }
         
-        // Create trigger
+        // trigger
         let trigger = UNCalendarNotificationTrigger(
             dateMatching: Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: reminderTime),
             repeats: false
         )
         
-        // Create request
+        // request
         let request = UNNotificationRequest(
             identifier: "streakReminder",
             content: content,
             trigger: trigger
         )
         
-        // Schedule notification
         do {
             try await UNUserNotificationCenter.current().add(request)
-            print("✅ Streak reminder scheduled for: \(reminderTime)")
         } catch {
-            print("❌ Failed to schedule streak reminder: \(error)")
+            print("Failed to schedule streak reminder: \(error)")
         }
     }
     

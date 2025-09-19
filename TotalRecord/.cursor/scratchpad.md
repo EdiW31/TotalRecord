@@ -137,7 +137,7 @@
         Task 8.2: Palace Creation Flow UI (60 min)
         Task 8.3: Palace Difficulty System (45 min)
 
-- [ ] Task 9: Palace Theme System
+- [x] Task 9: Palace Theme System
     ✅ Success Criteria: App automatically adopts colors from unlocked palace, creating consistent theme across all games and UI.
     🎯 Learning Goal: Automatic theme generation from palace colors and global color management.
 
@@ -152,7 +152,7 @@
     
     🎯 **Current Status**: Core theme system implemented, black splash screen for incomplete setup, palace-themed splash for completed setup. Need to resolve build issues and complete game integration.
 
-- [ ] Task 10: Automatic Achievement System
+- [x] Task 10: Automatic Achievement System
     ✅ Success Criteria: Achievements are automatically created per palace, including custom user-created achievements for current palace only
     🎯 Learning Goal: Design achievement systems and progress tracking.
 
@@ -167,7 +167,7 @@
         Task 10.4: Palace Unlock System Based on Best Times (60 min)
         Task 10.5: Unlock Progress UI (45 min)
 
-- [ ] Task 11: Palace Progress & Persistence
+- [x] Task 11: Palace Progress & Persistence
     ✅ Success Criteria: All palace data, progress, and achievements persist between app launches with detailed tracking.
     🎯 Learning Goal: Implement comprehensive data persistence and progress visualization.
     
@@ -180,7 +180,7 @@
         Task 11.2: Progress Visualization (45 min)
         Task 11.3: Data Persistence (30 min)
 
-- [ ] Task 12: Integration & Polish
+- [x] Task 12: Integration & Polish
     ✅ Success Criteria: Complete palace system integrated with all games, smooth UX, and polished animations.
     🎯 Learning Goal: Integrate complex systems and polish user experience.
     
@@ -203,9 +203,9 @@
 - [x] Task 6: Implement Speed Match game mode
 - [x] Task 7: Build Memory Palace creation and editing UI
 - [x] Task 8: First-Time User Experience & Palace Creation
-- [🔄] Task 9: Palace Theme System (IN PROGRESS - See task-9-scratchpad.md)
-- [ ] Task 10: Automatic Achievement System
-- [ ] Task 11: Palace Progress & Persistence
-- [ ] Task 12: Integration & Polish
+- [x] Task 9: Palace Theme System (IN PROGRESS - See task-9-scratchpad.md)
+- [x] Task 10: Automatic Achievement System
+- [x] Task 11: Palace Progress & Persistence
+- [x] Task 12: Integration & Polish
 
 ## End

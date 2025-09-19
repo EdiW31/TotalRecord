@@ -164,19 +164,9 @@ public class TrophyRoomStorage: ObservableObject {
             loadCurrentTrophyRoom()
         }
         
-        // Debug: Print loaded trophy rooms and achievements
-        print("🏆 LOADED TROPHY ROOMS:")
-        for (index, room) in trophyRooms.enumerated() {
-            print("   Room \(index + 1): \(room.name)")
-            print("     Unlocked: \(room.isUnlocked)")
-            print("     Completed: \(room.isCompleted)")
-            print("     Achievements: \(room.achievements.count)")
-            for (achievementIndex, achievement) in room.achievements.enumerated() {
-                print("       \(achievementIndex + 1). \(achievement.name) (\(achievement.type.rawValue))")
-                print("         Game: \(achievement.gameType?.rawValue ?? "General")")
-                print("         Progress: \(achievement.currentValue)/\(achievement.targetValue)")
-                print("         Completed: \(achievement.isCompleted)")
-            }
+        print("Trophy rooms loaded: \(trophyRooms.count)")
+        for room in trophyRooms {
+            print("Room: \(room.name) - Unlocked: \(room.isUnlocked), Completed: \(room.isCompleted)")
         }
     }
     
@@ -505,8 +495,8 @@ public class TrophyRoomStorage: ObservableObject {
         for (roomIndex, room) in trophyRooms.enumerated() {
             if room.isUnlocked && !room.isCompleted {
                 for (achievementIndex, achievement) in room.achievements.enumerated() {
-                    if achievement.gameType == gameType {
-                        updateAchievementProgress(achievement, score: score, time: time, accuracy: accuracy)
+                if achievement.gameType == gameType {
+                    updateAchievementProgress(achievement, score: score, time: time, accuracy: accuracy)
                     }
                 }
             }
@@ -604,7 +594,7 @@ public class TrophyRoomStorage: ObservableObject {
                         object: room
                     )
                     
-                    print("🎉 Room '\(room.name)' completed! Data cleared and next room unlocked.")
+                    print("Room completed: \(room.name)")
                 }
             }
         }
@@ -627,7 +617,7 @@ public class TrophyRoomStorage: ObservableObject {
             trophyRooms[index] = clearedRoom
             saveAchievements(for: clearedRoom)
             
-            print("🗑️ Cleared data for room '\(room.name)' to save memory")
+            print("Cleared data for room: \(room.name)")
         }
     }
     
@@ -638,65 +628,48 @@ public class TrophyRoomStorage: ObservableObject {
             let nextRoom = trophyRooms[nextIndex]
             if !nextRoom.isUnlocked {
                 unlockTrophyRoom(nextRoom)
-                print("🔓 Unlocked next room: '\(nextRoom.name)'")
+                print("Unlocked next room: \(nextRoom.name)")
             }
         }
     }
     
     // DEBUG: Print all room and achievement status
     public func printAllRoomsStatus() {
-        print("📊 ALL ROOMS STATUS:")
-        print("   Total Rooms: \(trophyRooms.count)")
+        print("All rooms status:")
+        print("Total rooms: \(trophyRooms.count)")
         
         if trophyRooms.isEmpty {
-            print("   ❌ NO ROOMS FOUND! Have you completed the setup?")
+            print("No rooms found")
             return
         }
         
-        for (index, room) in trophyRooms.enumerated() {
-            print("   Room \(index + 1): \(room.name)")
-            print("     Unlocked: \(room.isUnlocked)")
-            print("     Completed: \(room.isCompleted)")
-            print("     Achievements: \(room.achievements.count)")
-            
+        for room in trophyRooms {
             let completedCount = room.achievements.filter { $0.isCompleted }.count
-            print("     Completed Achievements: \(completedCount)/\(room.achievements.count)")
-            
-            // Only show first few achievements to avoid spam
-            let achievementsToShow = Array(room.achievements.prefix(3))
-            for achievement in achievementsToShow {
-                print("       - \(achievement.name): \(achievement.currentValue)/\(achievement.targetValue) (\(achievement.isCompleted ? "✅" : "⏳"))")
-            }
-            if room.achievements.count > 3 {
-                print("       ... and \(room.achievements.count - 3) more achievements")
-            }
+            print("Room: \(room.name) - Unlocked: \(room.isUnlocked), Completed: \(room.isCompleted), Achievements: \(completedCount)/\(room.achievements.count)")
         }
     }
     
     // DEBUG: Check if setup is completed
     public func checkSetupStatus() {
         let hasCompletedSetup = UserDefaults.standard.bool(forKey: "hasCompletedFirstTimeSetup")
-        print("🔧 SETUP STATUS:")
-        print("   Has Completed Setup: \(hasCompletedSetup)")
-        print("   Total Rooms: \(trophyRooms.count)")
+        print("Setup status: \(hasCompletedSetup)")
+        print("Total rooms: \(trophyRooms.count)")
         
         if !hasCompletedSetup {
-            print("   ❌ SETUP NOT COMPLETED! Please complete the trophy room setup first.")
+            print("Setup not completed")
         } else if trophyRooms.isEmpty {
-            print("   ❌ SETUP COMPLETED BUT NO ROOMS LOADED! There might be an issue with room loading.")
+            print("Setup completed but no rooms loaded")
         } else {
-            print("   ✅ Setup completed and rooms loaded successfully!")
+            print("Setup completed and rooms loaded successfully")
         }
     }
     
     // NEW: Update achievements based on ScoreStorage data
     public func updateAchievementsFromScoreStorage() {
-        print("📊 UPDATING ACHIEVEMENTS FROM SCORE STORAGE")
+        print("Updating achievements from score storage")
         
         for (roomIndex, room) in trophyRooms.enumerated() {
             if room.isUnlocked && !room.isCompleted {
-                print("   Updating room: \(room.name)")
-                
                 for (achievementIndex, achievement) in room.achievements.enumerated() {
                     // Skip achievements without a game type
                     guard achievement.gameType != nil else {
@@ -733,13 +706,13 @@ public class TrophyRoomStorage: ObservableObject {
                     if updatedAchievement.currentValue >= updatedAchievement.targetValue && !updatedAchievement.isCompleted {
                         updatedAchievement.isCompleted = true
                         updatedAchievement.completedDate = Date()
-                        print("     ✅ ACHIEVEMENT COMPLETED: \(updatedAchievement.name)")
+                        print("Achievement completed: \(updatedAchievement.name)")
                     }
                     
                     // Update if achievement was completed
                     if updatedAchievement.isCompleted != achievement.isCompleted {
                         trophyRooms[roomIndex].achievements[achievementIndex] = updatedAchievement
-                        print("     📈 Updated: \(updatedAchievement.name) - \(updatedAchievement.currentValue)/\(updatedAchievement.targetValue)")
+                        print("Updated achievement: \(updatedAchievement.name)")
                     }
                 }
                 
@@ -794,19 +767,19 @@ public struct TrophyRoomFormView: View {
     }
 }
 
-// Form to create or edit an Achievement
+// Form to create or edit an Achievement for later Implementations
 public struct AchievementFormView: View {
     @Binding var achievement: Achievement
     var onSave: (() -> Void)?
     
     public var body: some View {
         VStack(spacing: 20) {
-            TextField("Achievement Name", text: $achievement.name)
+                TextField("Achievement Name", text: $achievement.name)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
             
-            TextField("Description", text: $achievement.description)
+                TextField("Description", text: $achievement.description)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-            
+                
             HStack {
                 Text("Type:")
                 Spacer()
@@ -816,8 +789,8 @@ public struct AchievementFormView: View {
                     }
                 }
                 .pickerStyle(MenuPickerStyle())
-            }
-            
+                }
+                
             HStack {
                 Text("Game Type:")
                 Spacer()
@@ -828,21 +801,21 @@ public struct AchievementFormView: View {
                     }
                 }
                 .pickerStyle(MenuPickerStyle())
-            }
-            
-            HStack {
+                }
+                
+                HStack {
                 Text("Target Value:")
-                Spacer()
-                TextField("Target", value: $achievement.targetValue, format: .number)
+                    Spacer()
+                    TextField("Target", value: $achievement.targetValue, format: .number)
                     .frame(width: 80)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
             }
             
-            Button("Save Achievement") {
-                onSave?()
-            }
+                Button("Save Achievement") {
+                    onSave?()
+                }
             .buttonStyle(.borderedProminent)
-            .disabled(achievement.name.isEmpty)
+                .disabled(achievement.name.isEmpty)
         }
         .padding()
         .navigationTitle(achievement.name.isEmpty ? "New Achievement" : "Edit Achievement")

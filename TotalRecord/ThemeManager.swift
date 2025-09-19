@@ -1,14 +1,11 @@
 import SwiftUI
-
-// MARK: - Trophy Room Theme
 struct TrophyRoomTheme {
-    let primaryColor: Color      // Main trophy room color
-    let secondaryColor: Color    // Complementary color
-    let accentColor: Color       // High-contrast accent
-    let backgroundColor: Color    // Background variant
-    let textColor: Color         // Text color for readability
+    let primaryColor: Color      
+    let secondaryColor: Color    
+    let accentColor: Color       
+    let backgroundColor: Color    
+    let textColor: Color         
     
-    // Default theme for when no trophy room is unlocked
     static let defaultTheme = TrophyRoomTheme(
         primaryColor: .purple,
         secondaryColor: .purple.opacity(0.7),
@@ -22,19 +19,16 @@ class ThemeManager: ObservableObject {
     @Published var currentTrophyRoomTheme: TrophyRoomTheme
     
     init() {
-        // Initialize with a default theme
+        // initializere cu default
         self.currentTrophyRoomTheme = TrophyRoomTheme.defaultTheme
     }
     
-    // Convert trophy room color string to complete theme
     func generateThemeFromTrophyRoom(_ trophyRoom: TrophyRoom) -> TrophyRoomTheme {
         let primaryColor = Color(trophyRoom.color)
         
-        // Generate complementary colors based on primary
         let secondaryColor = primaryColor.opacity(0.7)
         let backgroundColor = primaryColor.opacity(0.1)
         
-        // Choose accent color based on primary color for good contrast
         let accentColor: Color
         switch trophyRoom.color {
         case "purple", "blue", "indigo":
@@ -49,8 +43,6 @@ class ThemeManager: ObservableObject {
             accentColor = .orange
         }
         
-        // Choose text color based on background brightness
-        // For light backgrounds, use dark text; for dark backgrounds, use light text
         let textColor: Color = trophyRoom.color == "yellow" || trophyRoom.color == "orange" ? .black : .white
         
         return TrophyRoomTheme(
@@ -62,14 +54,12 @@ class ThemeManager: ObservableObject {
         )
     }
     
-    // Update theme based on available trophy rooms
     func updateThemeFromTrophyRooms(_ trophyRooms: [TrophyRoom]) {
         if let firstTrophyRoom = trophyRooms.first {
             currentTrophyRoomTheme = generateThemeFromTrophyRoom(firstTrophyRoom)
         }
     }
     
-    // Get current theme colors as computed properties
     var primaryColor: Color { currentTrophyRoomTheme.primaryColor }
     var secondaryColor: Color { currentTrophyRoomTheme.secondaryColor }
     var accentColor: Color { currentTrophyRoomTheme.accentColor }

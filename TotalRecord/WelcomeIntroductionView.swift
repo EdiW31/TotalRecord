@@ -1,7 +1,6 @@
 import SwiftUI
 import UserNotifications
 
-// MARK: - Welcome Page Model
 struct WelcomePage {
     let id = UUID()
     let title: String
@@ -11,7 +10,6 @@ struct WelcomePage {
     let backgroundColor: Color
 }
 
-// MARK: - Individual Welcome Page View
 struct WelcomePageView: View {
     let page: WelcomePage
     
@@ -57,8 +55,6 @@ struct WelcomePageView: View {
         )
     }
 }
-
-// MARK: - Main Welcome Carousel View
 struct WelcomeCarouselView: View {
     @State private var currentPage = 0
     @State private var showPalaceCreation = false
@@ -222,8 +218,6 @@ struct WelcomeCarouselView: View {
         }
     }
 }
-
-// MARK: - Placeholder Main App View
 struct MainAppView: View {
     var body: some View {
         NavigationView {
@@ -241,7 +235,6 @@ struct MainAppView: View {
     }
 }
 
-// MARK: - Preview
 #Preview {
     WelcomeCarouselView(hasCompletedFirstTimeSetup: .constant(false))
 }

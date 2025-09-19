@@ -138,8 +138,6 @@ struct StatRow: View {
         }
     }
 }
-
-// Convenience initializer for easier usage
 extension FinishGamePage {
     init(stats: GameStats, gameWon: Bool = true, onPlayAgain: @escaping () -> Void, onMainMenu: @escaping () -> Void) {
         self.stats = stats

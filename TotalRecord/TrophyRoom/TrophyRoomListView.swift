@@ -44,12 +44,14 @@ struct TrophyRoomListView: View {
                                 .opacity(0.7)
                         }
                         
-                        Button(action: { showCreateSheet = true }) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 32))
-                                .foregroundColor(.blue)
-                                .opacity(0.5)
-                        }
+                        // For later implementation (poate cand termina cu all the rooms, then sa poti creaa new ones si sa add custom achievements)
+
+                        // Button(action: { showCreateSheet = true }) {
+                        //     Image(systemName: "plus.circle.fill")
+                        //         .font(.system(size: 32))
+                        //         .foregroundColor(.blue)
+                        //         .opacity(0.5)
+                        // }
                     }
                     .padding(.horizontal)
                     
@@ -381,6 +383,7 @@ struct TrophyRoomAchievementsView: View {
                         .background(Color.green.opacity(0.15))
                         .cornerRadius(12)
                 }
+                // .disabled(!allAchievementsCompleted)
                 
 
                 if trophyRoom.achievements.isEmpty {
@@ -462,6 +465,11 @@ struct TrophyRoomAchievementsView: View {
                 showAchievementSheet = false
             }
         }
+    }
+
+    // var care verifica daca toate achievementurile sunt completate
+    private var allAchievementsCompleted: Bool {
+        return !trophyRoom.achievements.isEmpty && trophyRoom.achievements.allSatisfy { $0.isCompleted }
     }
     
     private var memoryMatchAchievements: [Achievement] {
