@@ -8,7 +8,6 @@ struct TrophyRoomSetupView: View {
     @State private var selectedColor: Color = .pink
     @State private var createdTrophyRooms: [TrophyRoom] = []
     
-    // These are just examples of trophy rooms, the user can customize them
     let trophyRoomTemplates: [TrophyRoom] = [
         TrophyRoom(name: "Memory Match Master", description: "Master the art of matching pairs", color: "blue"),
         TrophyRoom(name: "Sequence Recall Expert", description: "Become an expert at remembering sequences", color: "orange"),
@@ -44,7 +43,6 @@ struct TrophyRoomSetupView: View {
                     .padding(.horizontal, 40)
                 }
                 
-                // The preview of the current trophy room
                 VStack(spacing: 20) {
                     Image(systemName: "trophy.fill")
                         .font(.system(size: 80, weight: .thin))
@@ -70,7 +68,6 @@ struct TrophyRoomSetupView: View {
                 VStack(spacing: 16) {
                     HStack(spacing: 20) {
                         Button("Skip") {
-                            // Save default trophy room and skip to next
                             saveCurrentTrophyRoom()
                             currentTrophyRoomIndex = min(currentTrophyRoomIndex + 1, trophyRoomTemplates.count - 1)
                         }
@@ -84,7 +81,6 @@ struct TrophyRoomSetupView: View {
                         
                         // If the user is on the last trophy room, show the complete setup button
                         if currentTrophyRoomIndex == trophyRoomTemplates.count - 1 {
-                            // Complete setup button
                             Button("Complete Setup") {
                                 saveCurrentTrophyRoom()
                                 saveAllTrophyRoomsToStorage()
@@ -94,7 +90,6 @@ struct TrophyRoomSetupView: View {
                             .tint(.green)
                         } else {
                             Button("Next") {
-                                // Save current trophy room and move to next
                                 saveCurrentTrophyRoom()
                                 currentTrophyRoomIndex = min(currentTrophyRoomIndex + 1, trophyRoomTemplates.count - 1)
                             }
@@ -113,7 +108,6 @@ struct TrophyRoomSetupView: View {
             TrophyRoomCustomizationView(
                 trophyRoom: trophyRoomTemplates[currentTrophyRoomIndex],
                 onSave: { customizedTrophyRoom in
-                    // Save the customized trophy room to our tracking array
                     if currentTrophyRoomIndex < createdTrophyRooms.count {
                         createdTrophyRooms[currentTrophyRoomIndex] = customizedTrophyRoom
                     } else {
@@ -129,45 +123,34 @@ struct TrophyRoomSetupView: View {
             )
         }
         .onAppear {
-            // Clear existing trophy rooms when starting setup
             createdTrophyRooms.removeAll()
         }
     }
 
     private func saveCurrentTrophyRoom() {
         let currentTrophyRoom = trophyRoomTemplates[currentTrophyRoomIndex]
-        // Use customized trophy room if available, otherwise use template
         let trophyRoomToSave = currentTrophyRoomIndex < createdTrophyRooms.count ? createdTrophyRooms[currentTrophyRoomIndex] : currentTrophyRoom
-        print("Saving current trophy room: \(trophyRoomToSave.name) with color: \(trophyRoomToSave.color)")
         createdTrophyRooms.append(trophyRoomToSave)
     }
     
     private func saveAllTrophyRoomsToStorage() {
-        print("=== SAVING ALL TROPHY ROOMS TO STORAGE ===")
-        print("Created trophy rooms count: \(createdTrophyRooms.count)")
         
         // clear existing trophy rooms
         trophyRoomStorage.trophyRooms.removeAll()
         
         for (index, trophyRoom) in createdTrophyRooms.enumerated() {
-            print("Saving trophy room \(index): \(trophyRoom.name) with color: \(trophyRoom.color)")
+            print("Saving trophy room: \(trophyRoom.name)")
             
-            // Create achievements for ALL games with increasing difficulty
             var trophyRoomWithAchievements = trophyRoom
             trophyRoomWithAchievements.achievements = createRoomAchievements(for: index, roomName: trophyRoom.name)
             
-            // Use addTrophyRoom to ensure proper creation order and unlock status
             trophyRoomStorage.addTrophyRoom(trophyRoomWithAchievements)
             trophyRoomStorage.saveAchievements(for: trophyRoomWithAchievements)
         }
         
-        // Mark setup as completed
         UserDefaults.standard.set(true, forKey: "hasCompletedFirstTimeSetup")
-        print("Setup marked as completed")
-        print("=== END SAVING TROPHY ROOMS ===")
     }
     
-    // NEW: Create achievements for ALL games with increasing difficulty per room
     private func createRoomAchievements(for roomIndex: Int, roomName: String) -> [Achievement] {
         var allAchievements: [Achievement] = []
         
@@ -313,15 +296,15 @@ struct TrophyRoomSetupView: View {
             )
         ])
         
-        print("✅ Created \(allAchievements.count) achievements for room \(roomIndex) (\(roomName))")
         return allAchievements
     }
 }
 
 struct TrophyRoomCustomizationView: View {
     @State private var trophyRoom: TrophyRoom
-    @State private var showAchievementSheet = false
-    @State private var newAchievement = Achievement(name: "", type: .completion)
+    @State private var customName: String = ""
+    @State private var customDescription: String = ""
+    @State private var selectedColor: String = ""
     let onSave: (TrophyRoom) -> Void
     let onColorSelected: (Color) -> Void
     
@@ -330,6 +313,9 @@ struct TrophyRoomCustomizationView: View {
     
     init(trophyRoom: TrophyRoom, onSave: @escaping (TrophyRoom) -> Void, onColorSelected: @escaping (Color) -> Void) {
         self._trophyRoom = State(initialValue: trophyRoom)
+        self._customName = State(initialValue: trophyRoom.name)
+        self._customDescription = State(initialValue: trophyRoom.description)
+        self._selectedColor = State(initialValue: trophyRoom.color)
         self.onSave = onSave
         self.onColorSelected = onColorSelected
     }
@@ -349,7 +335,7 @@ struct TrophyRoomCustomizationView: View {
                             Text("Trophy Room Name")
                                 .font(.headline)
                                 .foregroundColor(.primary)
-                            TextField("Enter trophy room name", text: $trophyRoom.name)
+                            TextField("Enter trophy room name", text: $customName)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                         }
                         
@@ -358,7 +344,7 @@ struct TrophyRoomCustomizationView: View {
                             Text("Description")
                                 .font(.headline)
                                 .foregroundColor(.primary)
-                            TextField("Enter description", text: $trophyRoom.description, axis: .vertical)
+                            TextField("Enter description", text: $customDescription, axis: .vertical)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .lineLimit(3...6)
                         }
@@ -372,7 +358,7 @@ struct TrophyRoomCustomizationView: View {
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 12) {
                                 ForEach(availableColors, id: \.self) { colorName in
                                     Button(action: {
-                                        trophyRoom.color = colorName
+                                        selectedColor = colorName
                                         let color = Color.fromString(colorName)
                                         onColorSelected(color)
                                     }) {
@@ -381,7 +367,7 @@ struct TrophyRoomCustomizationView: View {
                                             .frame(width: 50, height: 50)
                                             .overlay(
                                                 Circle()
-                                                    .stroke(Color.primary, lineWidth: trophyRoom.color == colorName ? 3 : 0)
+                                                    .stroke(Color.primary, lineWidth: selectedColor == colorName ? 3 : 0)
                                             )
                                     }
                                     .buttonStyle(PlainButtonStyle())
@@ -389,50 +375,6 @@ struct TrophyRoomCustomizationView: View {
                             }
                         }
                         
-                        // Achievement creation section
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("Add Achievements")
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
-                                Spacer()
-                                Button("Add Achievement") {
-                                    newAchievement = Achievement(name: "", type: .completion)
-                                    showAchievementSheet = true
-                                }
-                                .buttonStyle(.bordered)
-                                .tint(.blue)
-                            }
-                            
-                            if trophyRoom.achievements.isEmpty {
-                                Text("No achievements added yet. Add some achievements to help track your progress.")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            } else {
-                                VStack(spacing: 8) {
-                                    ForEach(trophyRoom.achievements) { achievement in
-                                        HStack {
-                                            Image(systemName: "star.fill")
-                                                .foregroundColor(.yellow)
-                                            Text(achievement.name)
-                                                .font(.body)
-                                            Spacer()
-                                            Button("Delete") {
-                                                if let index = trophyRoom.achievements.firstIndex(where: { $0.id == achievement.id }) {
-                                                    trophyRoom.achievements.remove(at: index)
-                                                }
-                                            }
-                                            .foregroundColor(.red)
-                                            .font(.caption)
-                                        }
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 8)
-                                        .background(Color.gray.opacity(0.1))
-                                        .cornerRadius(8)
-                                    }
-                                }
-                            }
-                        }
                     }
                     .padding(.horizontal, 24)
                 }
@@ -441,21 +383,21 @@ struct TrophyRoomCustomizationView: View {
                 
                 // Save button
                 Button("Save Trophy Room") {
-                    onSave(trophyRoom)
+                    // Create updated trophy room with custom values
+                    var updatedTrophyRoom = trophyRoom
+                    updatedTrophyRoom.name = customName
+                    updatedTrophyRoom.description = customDescription
+                    updatedTrophyRoom.color = selectedColor
+                    
+                    onSave(updatedTrophyRoom)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.pink)
-                .disabled(trophyRoom.name.isEmpty)
+                .disabled(customName.isEmpty)
                 .padding(.horizontal, 24)
                 .padding(.bottom, 24)
             }
             .navigationTitle("Customize Trophy Room")
-        }
-        .sheet(isPresented: $showAchievementSheet) {
-            AchievementFormView(achievement: $newAchievement) {
-                trophyRoom.achievements.append(newAchievement)
-                showAchievementSheet = false
-            }
         }
     }
 }
